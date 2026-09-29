@@ -1,0 +1,256 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * PolarVerse design tokens ("polar" theme).
+ * Brand hexes: navy #0B1F3A, glacier #3B82C4, ice #5BB5E8, ice-white #F5FAFF,
+ * aurora teal #2DD4BF, aurora violet #8B5CF6, expedition amber #F59E0B.
+ * Primary is slightly darkened in light mode so text on white passes WCAG AA.
+ */
+@layer base {
+  :root {
+    --background: 213 100% 98%;
+    --foreground: 214 68% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 214 68% 14%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 214 68% 14%;
+    --primary: 209 60% 40%;
+    --primary-foreground: 213 100% 98%;
+    --secondary: 205 60% 93%;
+    --secondary-foreground: 214 68% 18%;
+    --muted: 210 40% 94%;
+    --muted-foreground: 214 20% 36%;
+    --accent: 172 66% 90%;
+    --accent-foreground: 174 80% 18%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 150 64% 30%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 26 83% 14%;
+    --border: 212 36% 86%;
+    --input: 212 36% 82%;
+    --ring: 209 60% 45%;
+    --radius: 12px;
+  }
+
+  .dark {
+    --background: 214 68% 8%;
+    --foreground: 210 40% 96%;
+    --card: 214 60% 11%;
+    --card-foreground: 210 40% 96%;
+    --popover: 214 60% 11%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 201 76% 63%;
+    --primary-foreground: 214 68% 10%;
+    --secondary: 214 45% 18%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 214 45% 16%;
+    --muted-foreground: 212 25% 72%;
+    --accent: 172 50% 20%;
+    --accent-foreground: 172 70% 85%;
+    --destructive: 0 70% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 150 55% 45%;
+    --success-foreground: 214 68% 8%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 26 83% 10%;
+    --border: 214 40% 22%;
+    --input: 214 40% 26%;
+    --ring: 201 76% 63%;
+  }
+
+  /* High-contrast mode (toggle in header). Maximises foreground/background separation. */
+  .hc {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --muted-foreground: 0 0% 15%;
+    --primary: 220 100% 28%;
+    --primary-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 45 100% 45%;
+  }
+  .dark.hc {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 4%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 4%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 88%;
+    --primary: 55 100% 60%;
+    --primary-foreground: 0 0% 0%;
+    --border: 0 0% 80%;
+    --input: 0 0% 80%;
+    --ring: 55 100% 60%;
+  }
+
+  /* Text-size control A- / A / A+ */
+  html[data-textsize='sm'] { font-size: 14.5px; }
+  html[data-textsize='md'] { font-size: 16px; }
+  html[data-textsize='lg'] { font-size: 18px; }
+
+  * { @apply border-border; }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  :lang(hi), :lang(mr) { font-family: var(--font-deva), var(--font-inter), sans-serif; }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Shimmer skeleton block */
+  .skeleton {
+    @apply relative overflow-hidden rounded-md bg-muted;
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, hsl(var(--background) / 0.55), transparent);
+    animation: shimmer 1.6s infinite;
+  }
+  .glass {
+    @apply border border-white/15 bg-white/10 backdrop-blur-md;
+  }
+  .text-balance { text-wrap: balance; }
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* Reduced motion + low-bandwidth: static skeletons, no decorative animation */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { display: none; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+.lowbw .skeleton::after { display: none; }
+.lowbw .motion-decor { animation: none !important; }
+.lowbw .hide-lowbw { display: none !important; }
+
+/* Scrollbar hide helper for horizontal chip rows */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* Prose for article bodies */
+.prose-polar h2 { @apply mt-8 scroll-mt-24 text-2xl font-semibold; }
+.prose-polar h3 { @apply mt-6 scroll-mt-24 text-xl font-semibold; }
+.prose-polar p { @apply mt-4 leading-7; }
+.prose-polar ul { @apply mt-4 list-disc space-y-1 pl-6; }
+.prose-polar blockquote { @apply mt-4 border-l-4 border-primary/50 pl-4 italic text-muted-foreground; }
+
+/* Leaflet is tile-free here: these rules restyle its SVG/vector UI for PolarVerse. */
+.leaflet-container {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(45, 212, 191, 0.1), transparent 38%),
+    linear-gradient(145deg, #0d345d, #06182d 72%);
+}
+.leaflet-control-container { font-family: inherit; }
+.leaflet-tooltip.polar-map-tooltip,
+.leaflet-tooltip.polar-map-label {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.leaflet-tooltip.polar-map-tooltip::before,
+.leaflet-tooltip.polar-map-label::before { display: none; }
+.leaflet-tooltip.polar-map-label span {
+  display: block;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 9999px;
+  background: rgba(11, 31, 58, 0.84);
+  padding: 2px 7px;
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.35;
+  backdrop-filter: blur(6px);
+}
+.leaflet-tooltip.polar-map-tooltip {
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.leaflet-interactive:focus {
+  outline: none;
+  filter: drop-shadow(0 0 5px white);
+}
+@media (prefers-reduced-motion: reduce) {
+  .leaflet-zoom-animated,
+  .leaflet-pan-anim .leaflet-tile,
+  .leaflet-tooltip.polar-map-tooltip { transition: none !important; }
+}
+
+.polar-div-icon { background: transparent; border: 0; }
+.polar-marker {
+  --marker-color: #5bb5e8;
+  position: relative;
+  display: inline-flex;
+  height: 32px;
+  max-width: 155px;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 9999px;
+  background: rgba(11, 31, 58, 0.9);
+  padding: 3px 8px 3px 4px;
+  color: white;
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1;
+  box-shadow: 0 5px 18px rgba(2, 9, 20, 0.35);
+  backdrop-filter: blur(7px);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.polar-marker__symbol {
+  display: grid;
+  width: 23px;
+  height: 23px;
+  flex: 0 0 23px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--marker-color);
+  color: #07162a;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+.polar-marker--historic { border-style: dashed; opacity: .9; }
+.polar-marker--historic .polar-marker__symbol { border-radius: 4px; }
+.polar-marker--headquarters .polar-marker__symbol { border-radius: 5px; transform: rotate(45deg); }
+.polar-marker--headquarters .polar-marker__symbol::first-letter { transform: rotate(-45deg); }
+.polar-marker--field-site .polar-marker__symbol { clip-path: polygon(50% 0, 100% 100%, 0 100%); border-radius: 0; padding-top: 5px; }
+.polar-marker--selected { transform: scale(1.08); box-shadow: 0 0 0 3px rgba(255,255,255,.7), 0 8px 25px rgba(2,9,20,.5); }
+.polar-marker--active::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 23px;
+  height: 23px;
+  border: 2px solid var(--marker-color);
+  border-radius: 50%;
+  animation: map-marker-pulse 2.4s ease-out infinite;
+}
+@keyframes map-marker-pulse { 0% { transform: scale(.8); opacity: .8; } 75%, 100% { transform: scale(2); opacity: 0; } }
+.lowbw .polar-marker--active::before { display: none; }
+@media (prefers-reduced-motion: reduce) { .polar-marker, .polar-marker--active::before { transition: none; animation: none; } }
