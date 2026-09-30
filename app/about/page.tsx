@@ -8,7 +8,7 @@ import { FAQS } from '@/data/learn';
 import { MAIN_NAV, TOOLS, FOOTER_LINKS } from '@/lib/nav';
 import { IMAGE_LIBRARY } from '@/lib/images';
 
-export const metadata: Metadata = { title: 'About', description: 'About the PolarVerse demo, data policy, licences and accessibility.' };
+export const metadata: Metadata = { title: 'About', description: 'About the DhruvShiksha demo, data policy, licences and accessibility.' };
 
 const LICENCES = [
   { id: 'CC-BY-4.0', text: 'Reuse with attribution, including commercially.' },
@@ -23,7 +23,7 @@ export default function AboutPage() {
       <div className="grid items-center gap-8 lg:grid-cols-2">
         <div>
           <DemoBadge className="mb-3" />
-          <SectionHeader as="h1" eyebrow="About" title="About NCPOR & PolarVerse" description="PolarVerse is a concept portal that brings together a polar knowledge repository and an outreach engine for the National Centre for Polar and Ocean Research (NCPOR), Goa, under the Ministry of Earth Sciences." className="mb-0" />
+          <SectionHeader as="h1" eyebrow="About" title="About NCPOR & DhruvShiksha" description="DhruvShiksha is a concept portal that brings together a polar knowledge repository and an outreach engine for the National Centre for Polar and Ocean Research (NCPOR), Goa, under the Ministry of Earth Sciences." className="mb-0" />
         </div>
         <PolarImage variant="station" seed="about" alt="A polar research station under a clear sky" className="aspect-[16/9] rounded-lg" />
       </div>
@@ -31,7 +31,7 @@ export default function AboutPage() {
       <div className="mt-12 grid gap-6 md:grid-cols-2">
         <section className="rounded-lg border bg-card p-6" aria-labelledby="mission">
           <h2 id="mission" className="flex items-center gap-2 text-xl font-semibold"><Target className="h-5 w-5 text-primary" aria-hidden /> Mission</h2>
-          <p className="mt-3 text-muted-foreground">NCPOR coordinates India’s scientific work in Antarctica, the Arctic, the Himalaya and the Southern and Indian Oceans. PolarVerse imagines how its reports, datasets, photos and activities could be archived, found and shared — with trustworthy, human-approved outreach for students and the public.</p>
+          <p className="mt-3 text-muted-foreground">NCPOR coordinates India’s scientific work in Antarctica, the Arctic, the Himalaya and the Southern and Indian Oceans. DhruvShiksha imagines how its reports, datasets, photos and activities could be archived, found and shared — with trustworthy, human-approved outreach for students and the public.</p>
           <p className="mt-3 text-sm text-muted-foreground">Note: this is a demonstration. All people, numbers and findings are fictional.</p>
         </section>
         <section id="data-policy" className="scroll-mt-28 rounded-lg border bg-card p-6" aria-labelledby="dp">
@@ -58,7 +58,7 @@ export default function AboutPage() {
         </section>
         <section id="accessibility" className="scroll-mt-28 rounded-lg border bg-card p-6" aria-labelledby="a11y">
           <h2 id="a11y" className="flex items-center gap-2 text-xl font-semibold"><Accessibility className="h-5 w-5 text-primary" aria-hidden /> Accessibility statement</h2>
-          <p className="mt-3 text-sm text-muted-foreground">PolarVerse is designed with GIGW and WCAG 2.1 AA guidance in mind: skip links, landmarks, keyboard navigation, visible focus, text resizing (A-/A/A+), a high-contrast mode, reduced-motion support, captions and transcripts, and a low-bandwidth mode. Full conformance requires manual testing with assistive technologies and expert review, which this demo has not undergone.</p>
+          <p className="mt-3 text-sm text-muted-foreground">DhruvShiksha is designed with GIGW and WCAG 2.1 AA guidance in mind: skip links, landmarks, keyboard navigation, visible focus, text resizing (A-/A/A+), a high-contrast mode, reduced-motion support, captions and transcripts, and a low-bandwidth mode. Full conformance requires manual testing with assistive technologies and expert review, which this demo has not undergone.</p>
         </section>
       </div>
 

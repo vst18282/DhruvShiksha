@@ -1,17 +1,23 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { LogIn, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/misc';
-import { DemoBadge } from '@/components/common';
+import { RoleChooser } from '@/components/auth/role-chooser';
+import { ROLE_LABELS } from '@/lib/constants';
+import { postAuthPath } from '@/lib/auth/redirect';
+import { useAuthStore } from '@/store/auth';
+import type { Role } from '@/types';
 
 const schema = z.object({
   name: z.string().min(2, 'Please enter your name'),
@@ -25,6 +31,9 @@ type V = z.infer<typeof schema>;
 
 export function RegisterForm() {
   const router = useRouter();
+  const next = useSearchParams().get('next');
+  const loginAs = useAuthStore((s) => s.loginAs);
+  const [userType, setUserType] = useState<Role>('student');
   const {
     register,
     handleSubmit,
@@ -33,10 +42,16 @@ export function RegisterForm() {
     formState: { errors, isSubmitting },
   } = useForm<V>({ resolver: zodResolver(schema) });
 
+  /**
+   * Demo sign-up: no account is created, but we sign the chosen role in and open the page they
+   * were heading to, or their role's home (dashboard for staff roles, Explore otherwise).
+   */
   const onSubmit = async () => {
     await new Promise((r) => setTimeout(r, 900));
-    toast.success('Registration received (demo)', { description: 'Use student@ncpor.demo / Student@123 to log in during the demo.' });
-    router.push('/login');
+    const u = await loginAs(userType);
+    toast.success('Account created (demo)', { description: `Signed in as ${ROLE_LABELS[u.role]} — nothing was stored on a server.` });
+    router.push(postAuthPath(u.role, next));
+    router.refresh();
   };
 
   const err = (k: keyof V) =>
@@ -47,66 +62,73 @@ export function RegisterForm() {
     ) : null;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="w-full max-w-md space-y-4">
-      <div>
-        <DemoBadge className="mb-3" />
-        <h1 className="text-2xl font-semibold">Register as a student</h1>
-        <p className="mt-1 text-sm text-muted-foreground">A mock form — it only shows a success message.</p>
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,19rem)_minmax(0,1fr)] lg:gap-10">
+      {/* Choose user type — left of the sign-up fields. */}
+      <div className="lg:border-r lg:pr-10">
+        <RoleChooser
+          name="register-user-type"
+          value={userType}
+          onChange={setUserType}
+          description="The account type you want to demo. Students get learning progress; the other types open their own dashboard."
+        />
+        <Button variant="outline" className="mt-4 w-full" asChild>
+          <Link href={next ? `/login?next=${encodeURIComponent(next)}` : '/login'}>
+            <LogIn /> I already have an account
+          </Link>
+        </Button>
       </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="name">Full name</Label>
-        <Input id="name" aria-invalid={!!errors.name} {...register('name')} />
-        {err('name')}
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="r-email">Email</Label>
-        <Input id="r-email" type="email" aria-invalid={!!errors.email} {...register('email')} />
-        {err('email')}
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+
+      {/* Details */}
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="min-w-0 space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="school">School / organisation</Label>
-          <Input id="school" aria-invalid={!!errors.school} {...register('school')} />
-          {err('school')}
+          <Label htmlFor="name">Full name</Label>
+          <Input id="name" aria-invalid={!!errors.name} {...register('name')} />
+          {err('name')}
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="level">Level</Label>
-          <Select value={watch('level')} onValueChange={(v) => setValue('level', v, { shouldValidate: true })}>
-            <SelectTrigger id="level" aria-invalid={!!errors.level}>
-              <SelectValue placeholder="Choose…" />
-            </SelectTrigger>
-            <SelectContent>
-              {['Class 5–6', 'Class 7–8', 'Class 9–10', 'Class 11–12', 'Undergraduate', 'Teacher', 'General public'].map((l) => (
-                <SelectItem key={l} value={l}>
-                  {l}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {err('level')}
+          <Label htmlFor="r-email">Email</Label>
+          <Input id="r-email" type="email" aria-invalid={!!errors.email} {...register('email')} />
+          {err('email')}
         </div>
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="r-pw">Password</Label>
-        <Input id="r-pw" type="password" aria-invalid={!!errors.password} {...register('password')} />
-        {err('password')}
-      </div>
-      <div className="flex items-start gap-2">
-        <Checkbox id="terms" checked={watch('terms') === true} onCheckedChange={(c) => setValue('terms', (c === true) as true, { shouldValidate: true })} />
-        <Label htmlFor="terms" className="font-normal leading-snug">
-          I understand this is a demo and no account is created.
-        </Label>
-      </div>
-      {err('terms')}
-      <Button type="submit" className="w-full" loading={isSubmitting}>
-        Create account
-      </Button>
-      <p className="text-center text-sm text-muted-foreground">
-        Already registered?{' '}
-        <Link href="/login" className="font-medium text-primary hover:underline">
-          Log in
-        </Link>
-      </p>
-    </form>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="school">School / organisation</Label>
+            <Input id="school" aria-invalid={!!errors.school} {...register('school')} />
+            {err('school')}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="level">Level</Label>
+            <Select value={watch('level')} onValueChange={(v) => setValue('level', v, { shouldValidate: true })}>
+              <SelectTrigger id="level" aria-invalid={!!errors.level}>
+                <SelectValue placeholder="Choose…" />
+              </SelectTrigger>
+              <SelectContent>
+                {['Class 5–6', 'Class 7–8', 'Class 9–10', 'Class 11–12', 'Undergraduate', 'Teacher', 'General public'].map((l) => (
+                  <SelectItem key={l} value={l}>
+                    {l}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {err('level')}
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="r-pw">Password</Label>
+          <Input id="r-pw" type="password" aria-invalid={!!errors.password} {...register('password')} />
+          {err('password')}
+        </div>
+        <div className="flex items-start gap-2">
+          <Checkbox id="terms" checked={watch('terms') === true} onCheckedChange={(c) => setValue('terms', (c === true) as true, { shouldValidate: true })} />
+          <Label htmlFor="terms" className="font-normal leading-snug">
+            I understand this is a demo and no account is created.
+          </Label>
+        </div>
+        {err('terms')}
+        <Button type="submit" className="w-full" loading={isSubmitting}>
+          <UserPlus /> Create account as {ROLE_LABELS[userType]}
+        </Button>
+      </form>
+    </div>
   );
 }

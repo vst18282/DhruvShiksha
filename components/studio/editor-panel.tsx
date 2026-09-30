@@ -28,6 +28,7 @@ import { useDataStore } from '@/store/data';
 import { useAuthStore } from '@/store/auth';
 import { useGenerate } from './use-generate';
 import { PlatformIcon } from './platform-icon';
+import { StudioLaunchpad } from './studio-launchpad';
 import { AiBadge, EmptyState } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Input, Textarea } from '@/components/ui/input';
@@ -310,6 +311,10 @@ function PieceEditor({ piece, typing, onTyped }: { piece: GeneratedPiece; typing
 
 export function EditorPanel({ sources }: { sources: SourceRef[] }) {
   const { outputs, generating, history, historyIndex, undo, redo, goto, settings } = useStudioStore();
+  // Content managers get a launchpad instead of a small empty state before the first generation.
+  // Content managers and scientists get a launchpad instead of a small empty state before the first generation.
+  const role = useAuthStore((s) => s.user?.role);
+  const manager = role === 'content_manager' || role === 'scientist';
   const run = useGenerate(sources);
   const [typed, setTyped] = useState<Set<string>>(new Set());
   const [compare, setCompare] = useState(false);
@@ -330,7 +335,7 @@ export function EditorPanel({ sources }: { sources: SourceRef[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className={cn('flex flex-wrap items-center gap-2', manager && !outputs.length && !generating && 'hidden')}>
         <Button variant="aurora" onClick={() => run('generate')} loading={generating} disabled={!sources.length}>
           <Sparkles /> {outputs.length ? 'Generate again' : 'Generate'}
         </Button>
@@ -369,7 +374,11 @@ export function EditorPanel({ sources }: { sources: SourceRef[] }) {
       )}
 
       {!generating && !outputs.length && (
-        <EmptyState icon={<Sparkles className="h-6 w-6" />} title="Nothing generated yet" description="Pick sources and settings on the left, then click Generate. Every output is an AI draft that must be reviewed and approved." />
+        manager ? (
+          <StudioLaunchpad sources={sources} onGenerate={() => run('generate')} generating={generating} quiet={role === 'scientist'} />
+        ) : (
+          <EmptyState icon={<Sparkles className="h-6 w-6" />} title="Nothing generated yet" description="Pick sources and settings on the left, then click Generate. Every output is an AI draft that must be reviewed and approved." />
+        )
       )}
 
       {!generating && outputs.length > 0 && current && (

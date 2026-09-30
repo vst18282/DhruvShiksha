@@ -34,7 +34,8 @@ export function AdminDashboard() {
   const s = SECTIONS[tab];
   return (
     <>
-      <DashHeader title={s.title} description={s.description} />
+      {/* The overview opens with its own greeting panel instead of a page heading. */}
+      {tab !== 'overview' && <DashHeader title={s.title} description={s.description} />}
       <div key={tab}>{s.render()}</div>
     </>
   );

@@ -33,9 +33,12 @@ export function SearchBox({
   autoFocus,
   className,
   variant = 'default',
+  onNavigate,
 }: {
   initial?: string;
   onSearch?: (q: string) => void;
+  /** Overrides how result/suggestion links are opened (the landing page routes visitors to login). */
+  onNavigate?: (href: string) => void;
   size?: 'lg' | 'md';
   placeholder?: string;
   autoFocus?: boolean;
@@ -85,18 +88,19 @@ export function SearchBox({
     ];
   }, [debounced, recentSearches, hydrated]);
 
+  const navigate = (href: string) => (onNavigate ? onNavigate(href) : router.push(href));
   const submit = (query: string) => {
     const v = query.trim();
     if (v) addRecentSearch(v);
     setOpen(false);
     if (onSearch) onSearch(v);
-    else router.push(`/explore?q=${encodeURIComponent(v)}`);
+    else navigate(`/explore?q=${encodeURIComponent(v)}`);
   };
   const choose = (o: Option) => {
     if (o.href) {
       setOpen(false);
       addRecentSearch(q);
-      router.push(o.href);
+      navigate(o.href);
     } else if (o.query !== undefined) {
       setQ(o.query);
       submit(o.query);

@@ -60,6 +60,8 @@ const TYPES: { id: ContentType; label: string; icon: React.ComponentType<{ class
   { id: 'expedition', label: 'Expedition', icon: Compass, accept: '.pdf,.doc,.docx,.txt,.csv,image/*', hint: 'Expedition record: dates, vessel, team and objectives' },
 ];
 const STEPS = ['Type', 'Files', 'Metadata', 'Access', 'Review'];
+/** Researchers submit reports, datasets, publications and media; each one waits for a content manager or admin. */
+const RESEARCHER_TYPES: ContentType[] = ['report', 'dataset', 'publication', 'photo', 'video'];
 const CHUNK = 256 * 1024;
 
 interface UpFile {
@@ -106,6 +108,7 @@ export function UploadWizard() {
   const { can, canFully } = useCan();
   // Content managers publish their own uploads directly; everyone else sends them for review.
   const direct = canFully('publish_direct');
+  const researcher = user.role === 'researcher';
   const canSetVisibility = can('set_visibility');
   const maxEmbargo = settings.maxEmbargoMonths;
   const embargoFor = (months: number) => addMonthsIso(new Date(), clampEmbargoMonths(months, maxEmbargo));
@@ -224,7 +227,7 @@ export function UploadWizard() {
               ? 'Only you and staff can see it. Open it from your dashboard and submit it when ready.'
               : submittedAs === 'published'
                 ? `It is live in the archive now. Visible to: ${visibilityLabel(meta.visibleTo)}.`
-                : 'Status is now In review. Once a content manager approves, the item appears in the public archive for everyone.'}
+                : `Status is now In review. Once a content manager${researcher ? ' or admin' : ''} approves, the item appears in the public archive for everyone.`}
           </p>
           <ul className="mt-5 space-y-2 text-left">
             {created.map((c) => (
@@ -245,7 +248,7 @@ export function UploadWizard() {
 
   return (
     <>
-      <DashHeader title="Upload Centre" description={direct ? "Add reports, datasets, expeditions, media and activities. Your uploads publish directly. Files stay in your browser (demo)." : "Add reports, datasets, expeditions, media and activities. A content manager reviews them before they go live. Files stay in your browser (demo)."} />
+      <DashHeader title="Upload Centre" description={researcher ? 'Submit reports, datasets, publications, photos and videos. A content manager or admin reviews each submission before it goes live. Files stay in your browser (demo).' : direct ? "Add reports, datasets, expeditions, media and activities. Your uploads publish directly. Files stay in your browser (demo)." : "Add reports, datasets, expeditions, media and activities. A content manager reviews them before they go live. Files stay in your browser (demo)."} />
       <ol className="mb-6 flex flex-wrap items-center gap-2" aria-label="Upload steps">
         {STEPS.map((s, i) => (
           <li key={s} className="flex items-center gap-2">
@@ -262,7 +265,7 @@ export function UploadWizard() {
           <fieldset>
             <legend className="mb-4 text-lg font-semibold">What are you uploading?</legend>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {TYPES.map((t) => (
+              {TYPES.filter((t) => !researcher || RESEARCHER_TYPES.includes(t.id)).map((t) => (
                 <button key={t.id} type="button" onClick={() => setType(t.id)} aria-pressed={type === t.id} className={cn('flex items-start gap-3 rounded-lg border p-4 text-left transition-colors hover:bg-muted/50', type === t.id && 'border-primary ring-2 ring-primary/30')}>
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-secondary text-primary"><t.icon className="h-5 w-5" /></span>
                   <span><span className="block font-medium">{t.label}</span><span className="text-xs text-muted-foreground">{t.hint}</span></span>

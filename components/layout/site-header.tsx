@@ -5,12 +5,13 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useTheme } from 'next-themes';
 import {
+  ArrowLeft,
   ChevronDown,
+  Compass,
   Contrast,
   Database,
   FlaskConical,
   Globe2,
-  Home,
   Images,
   Map as MapIcon,
   Newspaper,
@@ -33,7 +34,7 @@ import {
 import { toast } from 'sonner';
 import { Wordmark } from './wordmark';
 import { ToolIcon } from './tool-icon';
-import { MAIN_NAV, MAP_VIEWS, TOOLS } from '@/lib/nav';
+import { CHROMELESS_ROUTES, MAIN_NAV, MAP_VIEWS, TOOLS } from '@/lib/nav';
 import type { DictKey } from '@/lib/i18n/dictionary';
 import { useT } from '@/lib/i18n';
 import { useUiStore, type TextSize } from '@/store/ui';
@@ -117,7 +118,6 @@ function GovStrip() {
 }
 
 const NAV_ICONS: Partial<Record<DictKey, LucideIcon>> = {
-  'nav.home': Home,
   'nav.explore': Search,
   'nav.expeditions': Ship,
   'nav.data': Database,
@@ -143,18 +143,34 @@ const navLabelClass =
 const DATA_ROLES: Role[] = ['admin', 'scientist', 'content_manager', 'researcher'];
 
 /**
- * Main navigation for the current user: admins drop "Home" (the logo still links there) and the
- * Data catalogue is only offered to staff and researchers.
+ * Main navigation for the current user. There is no "Home" tab any more — `/` is the public
+ * landing page — and the Data catalogue is only offered to staff and researchers.
  */
 function useMainNav() {
   const role = useAuthStore((s) => s.user?.role);
   const hydrated = useHydrated();
   return MAIN_NAV.filter((n) => {
     if (!hydrated) return n.key !== 'nav.data';
-    if (n.key === 'nav.home') return role !== 'admin';
     if (n.key === 'nav.data') return !!role && DATA_ROLES.includes(role);
     return true;
   });
+}
+
+/**
+ * Takes the signed-in user back to the dashboard for their own role (content managers live at
+ * /dashboard/content, everyone else at /dashboard/<role>). Hidden for visitors, who have none.
+ */
+function BackToDashboard({ className }: { className?: string }) {
+  const hydrated = useHydrated();
+  const user = useAuthStore((s) => s.user);
+  if (!hydrated || !user) return null;
+  return (
+    <Button asChild variant="outline" size="sm" className={cn('shrink-0 gap-1.5', className)}>
+      <Link href={dashboardPathFor(user.role)}>
+        <ArrowLeft className="h-4 w-4" aria-hidden /> Back to Dashboard
+      </Link>
+    </Button>
+  );
 }
 
 function ToolsMegaMenu({ active }: { active: boolean }) {
@@ -343,7 +359,7 @@ function UserMenu() {
             <PenSquare /> {t('nav.studio')}
           </DropdownMenuItem>
         )}
-        {can('upload') && (
+        {can('upload') && user.role !== 'content_manager' && (
           <DropdownMenuItem onSelect={() => router.push('/upload')}>
             <Upload /> {t('nav.upload')}
           </DropdownMenuItem>
@@ -402,6 +418,7 @@ function MobileNav() {
       <SheetContent side="left" className="w-[85vw] max-w-sm">
         <SheetTitle className="sr-only">Navigation</SheetTitle>
         <Wordmark />
+        <BackToDashboard className="mt-4 w-full" />
         <nav aria-label="Mobile" className="mt-4 flex flex-col">
           {nav.map((n) => {
             const Icon = NAV_ICONS[n.key];
@@ -451,7 +468,7 @@ export function SiteHeader() {
   const mapAt = nav.findIndex((n) => n.key === 'nav.map');
   const toolsAt = mapAt === -1 ? nav.length : mapAt + 1;
   const link = (n: (typeof nav)[number]) => {
-    const Icon = NAV_ICONS[n.key] ?? Home;
+    const Icon = NAV_ICONS[n.key] ?? Compass;
     const label = t(n.key);
     // The Map tab carries its own 2D / 3D menu instead of linking straight through.
     if (n.key === 'nav.map') return <MapMenu key={n.href} active={pathname === '/map' || pathname.startsWith('/tools/polar-map')} />;
@@ -463,19 +480,25 @@ export function SiteHeader() {
     );
   };
 
+  // The landing page and the auth screens deliberately carry no navigation bar.
+  if (CHROMELESS_ROUTES.includes(pathname)) return null;
+
   return (
     <header className="sticky top-0 z-40">
       <GovStrip />
       <div className="border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-        <div className="container flex h-16 items-center gap-2">
-          <MobileNav />
-          <Wordmark className="mr-2" subtitleClassName="lg:max-xl:hidden" />
+        <div className="flex h-16 items-center gap-2">
+          <div className="flex items-center gap-2 pl-2 sm:pl-4">
+            <MobileNav />
+            <Wordmark subtitleClassName="lg:max-xl:hidden" />
+            <BackToDashboard className="ml-1 hidden sm:inline-flex" />
+          </div>
           <nav aria-label="Main" className="no-scrollbar hidden min-w-0 flex-1 items-center justify-center gap-2 overflow-x-auto lg:flex xl:gap-3">
             {nav.slice(0, toolsAt).map(link)}
             <ToolsMegaMenu active={pathname.startsWith('/tools')} />
             {nav.slice(toolsAt).map(link)}
           </nav>
-          <div className="ml-auto flex items-center gap-0.5">
+          <div className="ml-auto flex items-center gap-0.5 pr-2 sm:pr-4">
             <Button
               variant="outline"
               size="sm"

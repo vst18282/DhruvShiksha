@@ -114,7 +114,7 @@ export function SocialAccountProfile({ accountId }: { accountId: string }) {
             <div>
               <dt className="sr-only">Posts</dt>
               <dd>
-                <strong className="tabular-nums">{s.posts}</strong> <span className="text-muted-foreground">posts via PolarVerse</span>
+                <strong className="tabular-nums">{s.posts}</strong> <span className="text-muted-foreground">posts via DhruvShiksha</span>
               </dd>
             </div>
             <div>

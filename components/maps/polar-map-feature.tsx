@@ -119,10 +119,12 @@ export function PolarMapFeature({ mode }: { mode: '2d' | '3d' }) {
         eyebrow="Interactive atlas · illustrative demo"
         title="Polar map"
         script={mode === '2d' ? '2D' : '3D'}
-        description="Explore India’s polar stations, field sites and demo expedition routes on a coastline-only map. No country borders, tile servers or API keys — all geometry is bundled locally."
+        description={mode === '2d'
+          ? 'Explore India’s polar stations, field sites and demo expedition routes on OpenStreetMap, satellite and terrain basemaps, with true polar views from NASA imagery. A bundled coastline outline keeps working offline.'
+          : 'Spin a NASA Blue Marble Earth to see where India works in Antarctica, the Arctic and the Himalaya. The legend on the globe explains every marker, line and ring.'}
         image={mode === '2d' ? 'sea-ice-satellite' : 'earth-ocean'}
         action={<MapModeSwitch mode={mode} />}
-        meta={<div className="flex flex-wrap gap-2"><HeroChip>{visibleCount} visible points</HeroChip><HeroChip>{year} timeline</HeroChip><HeroChip>Offline coastline data</HeroChip></div>}
+        meta={<div className="flex flex-wrap gap-2"><HeroChip>{visibleCount} visible points</HeroChip><HeroChip>{year} timeline</HeroChip><HeroChip>{mode === '2d' ? 'OpenStreetMap · NASA GIBS' : 'NASA Blue Marble imagery'}</HeroChip></div>}
       />
 
       <div className="container py-6">
@@ -170,7 +172,7 @@ export function PolarMapFeature({ mode }: { mode: '2d' | '3d' }) {
         </div>
 
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-          <p><Compass className="mr-1 inline h-3.5 w-3.5" aria-hidden /> Illustrative coastline-only map · points and tracks are approximate demo data.</p>
+          <p><Compass className="mr-1 inline h-3.5 w-3.5" aria-hidden /> {mode === '2d' ? 'Basemaps: OpenStreetMap contributors, Esri, OpenTopoMap and NASA GIBS (internet needed; Outline works offline)' : 'Globe imagery: NASA Blue Marble / Black Marble'} · points and tracks are approximate demo data.</p>
           <p>{mode === '2d' ? 'Scroll to zoom · drag to pan · use +/− or arrow keys' : 'Drag to rotate · scroll to zoom · select a point for details'}</p>
         </div>
         <div className="mt-4"><AccessiblePointList selected={selectedId} onChoose={(point) => { if (mode === '2d') setProjection(projectionForPoint(point)); choosePoint(point); }} /></div>

@@ -12,12 +12,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useStudioStore, effectiveSources, DEFAULT_SETTINGS } from '@/store/studio';
 import { useDataStore } from '@/store/data';
+import { useAuthStore } from '@/store/auth';
 import { useCan } from '@/lib/permissions';
 import { findRef, publishedItems } from '@/lib/archive';
 import { factCheck, MODEL_NAME } from '@/lib/mock-ai';
 import type { GeneratedPiece } from '@/lib/mock-ai/types';
 import { buildRequest } from './use-generate';
 import { useMediaQuery } from '@/hooks/use-count-up';
+import { cn } from '@/lib/utils';
 
 /** Three-panel Content Studio composer (collapses to steps below lg). */
 export function Composer() {
@@ -30,6 +32,7 @@ export function Composer() {
   const [step, setStep] = useState('sources');
   const perms = useCan();
   const draftOnly = perms.grant('use_studio') === 'draft';
+  const user = useAuthStore((s) => s.user);
 
   // Deep links: ?source=type:id · ?post=id · ?note=… · ?output=blog
   useEffect(() => {
@@ -82,10 +85,17 @@ export function Composer() {
   const allReports = useMemo(() => publishedItems().filter((i) => i.type === 'report').map((i) => ({ type: i.type, id: i.id })), []);
   const sources = effectiveSources(st, allReports);
 
+  // For scientists this page is the "Upload draft" section: every post they write goes to approval.
+  const scientist = user?.role === 'scientist';
+  const manager = user?.role === 'content_manager';
   const header = (
     <DashHeader
-      title="Content Studio"
-      description="Generate website and social content from the archive — AI drafts with mandatory human approval."
+      title={scientist ? 'Upload draft' : 'Content Studio'}
+      description={
+        scientist
+          ? 'Write a post draft from the archive and send it for approval. A content manager or admin reviews it before it goes live.'
+          : 'Generate website and social content from the archive — AI drafts with mandatory human approval.'
+      }
       actions={draftOnly ? <Badge variant="warning">Draft-only mode: you can generate and send for approval</Badge> : undefined}
     />
   );
@@ -104,6 +114,44 @@ export function Composer() {
           <TabsContent value="write"><EditorPanel sources={sources} /></TabsContent>
           <TabsContent value="preview"><PublishPanel sources={sources} /></TabsContent>
         </Tabs>
+      </>
+    );
+  }
+
+  // Content managers and scientists (Upload draft): structured layout with a working centre column.
+  if (manager || scientist) {
+    // Content managers: setup on the left (scrolls on its own), work in the centre. The publishing
+    // rail only appears once there is something to preview and publish.
+    const ready = st.outputs.length > 0;
+    return (
+      <>
+        {header}
+        <div className={cn('grid gap-5', ready && wide ? 'grid-cols-[300px_minmax(0,1fr)_340px]' : 'grid-cols-[320px_minmax(0,1fr)]')}>
+          <aside aria-label="Sources and controls" className="min-w-0">
+            <div className="sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto rounded-xl pr-1">
+              <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">1 · Setup</p>
+              <ControlsPanel sources={sources} />
+            </div>
+          </aside>
+          <section aria-label="Editor and outputs" className="min-w-0">
+            <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">2 · {ready ? 'Review & edit' : 'Generate'}</p>
+            <EditorPanel sources={sources} />
+            {ready && !wide && (
+              <div className="mt-6">
+                <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">3 · Preview & publish</p>
+                <PublishPanel sources={sources} />
+              </div>
+            )}
+          </section>
+          {ready && wide && (
+            <aside aria-label="Previews and publishing" className="min-w-0">
+              <div className="sticky top-28 max-h-[calc(100vh-8rem)] overflow-y-auto pr-1">
+                <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">3 · Preview & publish</p>
+                <PublishPanel sources={sources} />
+              </div>
+            </aside>
+          )}
+        </div>
       </>
     );
   }

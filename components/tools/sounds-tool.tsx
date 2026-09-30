@@ -130,6 +130,7 @@ export function SoundsTool() {
   return (
     <ToolLayout
       title="Sounds of the Pole"
+      hero={{ lead: 'Sounds of the', script: 'pole', image: 'pressure-ridge' }}
       intro="Listen to — and mix — the soundscapes of Antarctica and the Arctic. Every sound here is synthesised in your browser for the demo."
       demoNote="All sounds are synthesised for demo with the Web Audio API — they imitate, but are not, real field recordings."
       howTo={[

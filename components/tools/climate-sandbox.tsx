@@ -82,11 +82,13 @@ export function ClimateSandbox() {
   }, [r, saved]);
 
   const setPathway = (p: Pathway) => setInput({ ...input, pathway: p, peak: PATHWAY_DEFAULTS[p].peak });
-  const shareText = `My PolarVerse Climate Sandbox run: ${PATHWAY_DEFAULTS[input.pathway].label}, peak ${r.peakWarming} °C → ${safeCount}/7 tipping elements safe, ~${Math.round(r.seaLevel2100 * 100)} cm sea-level rise by ${input.horizon}. Score ${score}. (Educational toy model)`;
+  const shareText = `My DhruvShiksha Climate Sandbox run: ${PATHWAY_DEFAULTS[input.pathway].label}, peak ${r.peakWarming} °C → ${safeCount}/7 tipping elements safe, ~${Math.round(r.seaLevel2100 * 100)} cm sea-level rise by ${input.horizon}. Score ${score}. (Educational toy model)`;
 
   return (
     <ToolLayout
       title="Climate Sandbox — Tipping Points"
+      eyebrow="Scientific tool · Tipping points"
+      hero={{ lead: 'Climate', script: 'sandbox', image: 'glacier-calving' }}
       intro="Change the warming path and see which polar and climate tipping elements stay safe, become at risk, or tip — and what cascades follow."
       demoNote="Educational model — indicative, not a scientific projection. Thresholds and effects are simplified for learning."
       howTo={[

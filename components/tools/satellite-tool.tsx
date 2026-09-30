@@ -109,6 +109,7 @@ export function SatelliteTool() {
   return (
     <ToolLayout
       title="Satellite & Ice Data"
+      hero={{ lead: 'Satellite & ice', script: 'data', image: 'sea-ice-satellite' }}
       intro="Compare demo satellite layers for sea ice, ocean temperature, albedo and Himalayan glaciers — month by month, year by year."
       howTo={[
         'Choose a region and a layer (true colour, sea ice, SST, albedo, glacier extent).',
@@ -232,8 +233,8 @@ export function SatelliteTool() {
                 title={c.title}
                 action={
                   <div className="flex gap-1">
-                    <Button size="icon" variant="ghost" className="h-7 w-7" aria-label={`Download ${c.title} as PNG`} onClick={() => svgToPng(chartRefs.current[c.id], `polarverse-${c.id}`)}><ImageIcon /></Button>
-                    <Button size="icon" variant="ghost" className="h-7 w-7" aria-label={`Download ${c.title} data as CSV`} onClick={() => { downloadTextFile(`polarverse-${c.id}.csv`, toCsv(c.csv), 'text/csv'); toast.success('CSV downloaded'); }}><Download /></Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" aria-label={`Download ${c.title} as PNG`} onClick={() => svgToPng(chartRefs.current[c.id], `dhruvshiksha-${c.id}`)}><ImageIcon /></Button>
+                    <Button size="icon" variant="ghost" className="h-7 w-7" aria-label={`Download ${c.title} data as CSV`} onClick={() => { downloadTextFile(`dhruvshiksha-${c.id}.csv`, toCsv(c.csv), 'text/csv'); toast.success('CSV downloaded'); }}><Download /></Button>
                   </div>
                 }
               >

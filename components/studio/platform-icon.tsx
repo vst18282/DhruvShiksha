@@ -31,16 +31,16 @@ export const brandHex = (id: PlatformId) => `#${BRANDS[id].hex}`;
  * Official logo for a platform. Black marks (X, Threads) use `currentColor` so they stay
  * visible in dark mode. Decorative by default; pass `title` to expose an accessible name.
  */
-export function PlatformIcon({ id, className, title }: { id: PlatformId; className?: string; title?: string }) {
+export function PlatformIcon({ id, className, title, monochrome }: { id: PlatformId; className?: string; title?: string; /** Draw in the current text colour instead of the brand colour. */ monochrome?: boolean }) {
   const b = BRANDS[id];
-  const mono = b.hex === '000000';
+  const mono = monochrome || b.hex === '000000';
   return (
     <svg
       viewBox="0 0 24 24"
       role={title ? 'img' : undefined}
       aria-hidden={title ? undefined : true}
       aria-label={title}
-      className={cn('inline-block h-4 w-4 shrink-0', mono && 'text-foreground', className)}
+      className={cn('inline-block h-4 w-4 shrink-0', mono && !monochrome && 'text-foreground', className)}
       fill={mono ? 'currentColor' : `#${b.hex}`}
     >
       {title && <title>{title}</title>}

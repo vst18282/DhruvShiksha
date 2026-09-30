@@ -2,7 +2,7 @@
   "name": "polarverse",
   "version": "0.1.0",
   "private": true,
-  "description": "PolarVerse — Integrated Polar Science Outreach, Knowledge Repository and Media Dissemination Portal (frontend-only demo)",
+  "description": "DhruvShiksha — Integrated Polar Science Outreach, Knowledge Repository and Media Dissemination Portal (frontend-only demo)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

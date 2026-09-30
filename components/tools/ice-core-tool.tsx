@@ -100,6 +100,7 @@ export function IceCoreTool() {
   return (
     <ToolLayout
       title="Ice Core Stratigraphy"
+      hero={{ lead: 'Ice core', script: 'stratigraphy', image: 'ice-core-store' }}
       intro="Drill down through a 3D ice core. Each layer is a snapshot of past climate — deeper means older."
       howTo={[
         'Choose a core from the segment library.',

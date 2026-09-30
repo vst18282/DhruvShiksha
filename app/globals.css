@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /*
- * PolarVerse design tokens ("polar" theme).
+ * DhruvShiksha design tokens ("polar" theme).
  * Brand hexes: navy #0B1F3A, glacier #3B82C4, ice #5BB5E8, ice-white #F5FAFF,
  * aurora teal #2DD4BF, aurora violet #8B5CF6, expedition amber #F59E0B.
  * Primary is slightly darkened in light mode so text on white passes WCAG AA.
@@ -156,7 +156,7 @@
 .prose-polar ul { @apply mt-4 list-disc space-y-1 pl-6; }
 .prose-polar blockquote { @apply mt-4 border-l-4 border-primary/50 pl-4 italic text-muted-foreground; }
 
-/* Leaflet is tile-free here: these rules restyle its SVG/vector UI for PolarVerse. */
+/* Leaflet basemaps (OSM / Esri / OpenTopoMap / NASA GIBS) + bundled coastline fallback. */
 .leaflet-container {
   font-family: var(--font-inter), system-ui, sans-serif;
   background:
@@ -199,7 +199,76 @@
   .leaflet-tooltip.polar-map-tooltip { transition: none !important; }
 }
 
+.polar-leaflet .leaflet-control-attribution {
+  border-top-left-radius: 6px;
+  background: rgba(255, 255, 255, 0.85);
+  padding: 1px 6px;
+  color: #334155;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.polar-leaflet .leaflet-control-attribution a { color: #1e3a5f; }
+.polar-leaflet .leaflet-bottom.leaflet-left { margin-bottom: 30px; }
+.polar-leaflet .leaflet-control-scale-line {
+  border-color: #0b1f3a;
+  background: rgba(255, 255, 255, 0.85);
+  color: #0b1f3a;
+  font-size: 10px;
+  font-weight: 600;
+}
+.polar-grid-label { background: transparent; border: 0; pointer-events: none; }
+.polar-grid-label span {
+  display: block;
+  text-align: center;
+  color: #f8fafc;
+  font-size: 10px;
+  font-weight: 600;
+  text-shadow: 0 0 3px #0b1f3a, 0 0 3px #0b1f3a;
+}
+
+/* 3D globe HTML pins: the pill sits above a short stem whose foot marks the location. */
+.globe-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transform: translate(calc(50% - 17px), -50%);
+}
+.globe-pin--left { align-items: flex-end; transform: translate(calc(-50% + 17px), -50%); }
+.globe-pin--left .polar-marker { flex-direction: row-reverse; padding: 3px 4px 3px 8px; }
+.globe-pin .polar-marker { pointer-events: auto; cursor: pointer; }
+.globe-pin .polar-marker:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.globe-pin__stem {
+  width: 2px;
+  height: 12px;
+  margin-left: 16px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(11, 31, 58, 0.6);
+}
+.globe-pin--left .globe-pin__stem { margin-left: 0; margin-right: 16px; height: 30px; }
+.globe-circle-label {
+  pointer-events: none;
+  white-space: nowrap;
+  color: #e2e8f0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 3px #020914, 0 0 4px #020914;
+  transform: translateY(-9px);
+}
+
+/* Landing page: slow research-theme ticker (paused on hover/focus, off for reduced motion). */
+@keyframes landing-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.landing-marquee { animation: landing-marquee 55s linear infinite; }
+.landing-marquee-wrap:hover .landing-marquee,
+.landing-marquee-wrap:focus-within .landing-marquee { animation-play-state: paused; }
+.lowbw .landing-marquee { animation: none; }
+@media (prefers-reduced-motion: reduce) { .landing-marquee { animation: none; } }
+
 .polar-div-icon { background: transparent; border: 0; }
+.polar-marker-wrap { display: flex; }
+.polar-marker-wrap--left { justify-content: flex-end; }
+.polar-marker-wrap--left .polar-marker { flex-direction: row-reverse; padding: 3px 4px 3px 8px; }
+.polar-marker-wrap--left .polar-marker--active::before { left: auto; right: 4px; }
 .polar-marker {
   --marker-color: #5bb5e8;
   position: relative;

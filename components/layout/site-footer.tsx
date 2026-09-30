@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Wordmark } from './wordmark';
-import { FOOTER_LINKS } from '@/lib/nav';
+import { BARE_ROUTES, FOOTER_LINKS } from '@/lib/nav';
 import { useT } from '@/lib/i18n';
 import { DemoBadge } from '@/components/common';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,8 @@ export function SiteFooter() {
   const t = useT();
   const pathname = usePathname();
   const compact = pathname.startsWith('/dashboard') || pathname.startsWith('/studio') || pathname.startsWith('/upload');
+  // The auth screens are full-bleed split layouts: no footer under the artwork.
+  if (BARE_ROUTES.includes(pathname)) return null;
   return (
     <footer className={cn('border-t bg-card', compact && 'pb-16 lg:pb-0')} role="contentinfo">
       {!compact && (
@@ -41,7 +43,7 @@ export function SiteFooter() {
       )}
       <div className="border-t">
         <div className="container flex flex-col items-center justify-between gap-2 py-4 text-xs text-muted-foreground sm:flex-row">
-          <p>© 2026 PolarVerse concept · All content is fictional demo data and not real scientific findings.</p>
+          <p>© 2026 DhruvShiksha concept · All content is fictional demo data and not real scientific findings.</p>
           <div className="flex items-center gap-3">
             <Link href="/about#accessibility" className="hover:underline">
               Accessibility

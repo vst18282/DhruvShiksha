@@ -29,7 +29,8 @@ export type NavIcon =
   | 'activity'
   | 'system'
   | 'publishing'
-  | 'updates';
+  | 'updates'
+  | 'database';
 
 export interface NavItem {
   label: string;
@@ -59,12 +60,15 @@ export const DASHBOARD_NAV: Record<Role, NavItem[]> = {
     { label: 'Publishing & Insights', href: '/dashboard/admin?tab=publishing', icon: 'publishing' },
     settings,
   ],
+  /**
+   * Scientists publish to the Data catalogue directly, but post drafts need a content manager or
+   * admin to approve them. "Upload draft" is where those post drafts are written.
+   */
   scientist: [
     { label: 'Overview', href: '/dashboard/scientist', icon: 'overview' },
-    upload,
-    { label: 'Studio (drafts)', href: '/studio', icon: 'studio', need: 'use_studio' },
+    { label: 'Upload draft', href: '/studio', icon: 'upload', need: 'use_studio' },
+    { label: 'Publish to Data', href: '/dashboard/scientist/publish', icon: 'database', need: 'upload' },
     { label: 'My drafts', href: '/studio/drafts', icon: 'drafts', need: 'use_studio' },
-    { label: 'Science review', href: '/studio/approvals', icon: 'approvals', need: 'approve_publish' },
     updates,
     settings,
   ],
@@ -76,10 +80,9 @@ export const DASHBOARD_NAV: Record<Role, NavItem[]> = {
     { label: 'Calendar', href: '/studio/calendar', icon: 'calendar', need: 'use_studio' },
     { label: 'Accounts', href: '/studio/accounts', icon: 'accounts', need: 'manage_social_accounts', full: true },
     { label: 'Analytics', href: '/studio/analytics', icon: 'analytics', need: 'view_analytics', full: true },
-    { label: 'Moderation', href: '/dashboard/content?tab=moderation', icon: 'moderation', need: 'moderate_questions' },
     { label: 'Visibility', href: '/dashboard/content?tab=visibility', icon: 'access', need: 'set_visibility' },
     { label: 'Blog editor & curation', href: '/dashboard/content?tab=cms', icon: 'cms' },
-    upload,
+    // No Upload Centre: content managers approve contributions and write posts; they do not add archive files.
     updates,
     settings,
   ],

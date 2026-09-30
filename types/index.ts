@@ -1,5 +1,5 @@
 /**
- * Core domain types for PolarVerse. All data in this app is fictional demo data.
+ * Core domain types for DhruvShiksha. All data in this app is fictional demo data.
  */
 
 export type Role = 'admin' | 'scientist' | 'content_manager' | 'researcher' | 'student';

@@ -1,7 +1,18 @@
 import type { DictKey } from '@/lib/i18n/dictionary';
 
+/** Where signed-in users land: `/` is the public landing page, so the portal starts at Explore. */
+export const PORTAL_HOME = '/explore';
+
+/**
+ * Routes that render without the main navigation bar and without the chatbot: the public landing
+ * page and the two auth screens. The auth screens also drop the site footer (see BARE_ROUTES).
+ */
+export const CHROMELESS_ROUTES = ['/', '/login', '/register'];
+
+/** Auth screens: full-bleed art fills the viewport, so the site footer is dropped too. */
+export const BARE_ROUTES = ['/login', '/register'];
+
 export const MAIN_NAV: { key: DictKey; href: string }[] = [
-  { key: 'nav.home', href: '/' },
   { key: 'nav.explore', href: '/explore' },
   { key: 'nav.expeditions', href: '/expeditions' },
   { key: 'nav.data', href: '/data' },

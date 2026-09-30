@@ -20,6 +20,7 @@ import { useApi, useInvalidate } from '@/hooks/use-queries';
 import { api } from '@/lib/mock-api';
 import { PLATFORM_META, SPECIAL_DAYS } from '@/lib/constants';
 import { useCan } from '@/lib/permissions';
+import { useAuthStore } from '@/store/auth';
 import { cn } from '@/lib/utils';
 
 /** Convert an ISO instant to an IST wall-clock Date (for day bucketing). */
@@ -36,13 +37,35 @@ function tint(p: SocialPost) {
   return { borderLeftColor: c, background: `${c}14` };
 }
 
-function Chip({ p, draggable, onOpen }: { p: SocialPost; draggable: boolean; onOpen: (p: SocialPost) => void }) {
+function Chip({ p, draggable, onOpen, refined }: { p: SocialPost; draggable: boolean; onOpen: (p: SocialPost) => void; refined?: boolean }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: p.id, disabled: !draggable });
   const published = p.status === 'published';
+  const move = transform ? `translate(${transform.x}px, ${transform.y}px)` : undefined;
+  if (refined) {
+    const c = tint(p).borderLeftColor;
+    return (
+      <div
+        ref={setNodeRef}
+        style={{ transform: move }}
+        className={cn('group flex items-center gap-1.5 rounded-lg border bg-background px-2 py-1 text-[11px] leading-tight shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition hover:-translate-y-px hover:shadow-md', isDragging && 'z-50 shadow-lg ring-1 ring-primary')}
+      >
+        <span className={cn('h-2 w-2 shrink-0 rounded-full', !published && 'ring-2 ring-inset ring-current bg-transparent')} style={{ background: published ? c : undefined, color: c }} aria-hidden />
+        <button type="button" onClick={() => onOpen(p)} className="min-w-0 flex-1 truncate text-left" title={p.title}>
+          <span className="font-semibold tabular-nums text-muted-foreground">{format(toIst(whenOf(p)!), 'HH:mm')}</span> <span className="group-hover:underline">{p.title}</span>
+        </button>
+        <span className="flex shrink-0 -space-x-0.5 opacity-80">
+          {p.platforms.slice(0, 2).map((pl) => (
+            <PlatformIcon key={pl} id={pl} className="h-3 w-3" />
+          ))}
+        </span>
+        <span className="sr-only">{published ? 'Published' : 'Scheduled'}</span>
+      </div>
+    );
+  }
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: transform ? `translate(${transform.x}px, ${transform.y}px)` : undefined, ...tint(p) }}
+      style={{ transform: move, ...tint(p) }}
       className={cn('group flex items-center gap-1 rounded-md border-l-[3px] px-1.5 py-1 text-[11px] leading-tight transition-shadow hover:shadow-sm', isDragging && 'z-50 shadow-lg ring-1 ring-primary')}
     >
       {draggable && (
@@ -63,17 +86,30 @@ function Chip({ p, draggable, onOpen }: { p: SocialPost; draggable: boolean; onO
   );
 }
 
-function DayCell({ day, muted, children, special, canDraft, onMore, more }: { day: Date; muted: boolean; children: React.ReactNode; special?: string; canDraft: boolean; onMore?: () => void; more: number }) {
+function DayCell({ day, muted, children, special, canDraft, onMore, more, refined }: { day: Date; muted: boolean; children: React.ReactNode; special?: string; canDraft: boolean; onMore?: () => void; more: number; refined?: boolean }) {
   const { setNodeRef, isOver } = useDroppable({ id: day.toISOString() });
   const today = isSameDay(day, new Date());
   return (
     <div
       ref={setNodeRef}
-      className={cn('flex min-h-[7.5rem] flex-col gap-1 border-b border-r p-1.5 text-xs transition-colors', isWeekend(day) && 'bg-muted/25', muted && 'bg-muted/50 text-muted-foreground', isOver && 'bg-primary/10 ring-2 ring-inset ring-primary/40')}
+      className={cn(
+        'flex flex-col gap-1 text-xs transition-colors',
+        refined
+          ? cn('min-h-[8.5rem] bg-card p-2 hover:bg-muted/30', isWeekend(day) && 'bg-muted/20', muted && 'bg-muted/40 text-muted-foreground/60', today && 'bg-primary/[0.05] ring-1 ring-inset ring-primary/30')
+          : cn('min-h-[7.5rem] border-b border-r p-1.5', isWeekend(day) && 'bg-muted/25', muted && 'bg-muted/50 text-muted-foreground'),
+        isOver && 'bg-primary/10 ring-2 ring-inset ring-primary/40',
+      )}
       aria-label={format(day, 'EEEE d MMMM')}
     >
       <div className="flex items-center justify-between">
-        <span className={cn('flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold', today && 'bg-primary text-primary-foreground shadow')}>{format(day, 'd')}</span>
+        {refined ? (
+          <span className={cn('flex h-7 min-w-7 items-center justify-center rounded-full px-1.5 text-xs font-semibold', today ? 'bg-primary text-primary-foreground shadow-sm' : 'text-foreground/80', muted && !today && 'text-muted-foreground/60')}>
+            {day.getDate() === 1 ? format(day, 'd MMM') : format(day, 'd')}
+          </span>
+        ) : (
+          <span className={cn('flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-semibold', today && 'bg-primary text-primary-foreground shadow')}>{format(day, 'd')}</span>
+        )}
+        {refined && today && <span className="text-[10px] font-semibold uppercase tracking-wide text-primary">Today</span>}
       </div>
       {special &&
         (canDraft ? (
@@ -101,6 +137,8 @@ function DayCell({ day, muted, children, special, canDraft, onMore, more }: { da
  * Clicking a title opens the post and its description in a pop-up.
  */
 export function CalendarView({ embedded = false }: { embedded?: boolean }) {
+  // Scientists get a softer, card-style calendar under "My drafts"; other roles keep the dense grid.
+  const refined = useAuthStore((s) => s.user?.role) === 'scientist';
   const { canFully, can } = useCan();
   const canMove = canFully('approve_publish') || canFully('publish_direct');
   const canDraft = can('use_studio');
@@ -160,14 +198,29 @@ export function CalendarView({ embedded = false }: { embedded?: boolean }) {
   const step = (dir: 1 | -1) => setCursor(view === 'week' ? addWeeks(cursor, dir) : addMonths(cursor, dir));
   const togglePlatform = (p: PlatformId) => setPlatforms((s) => (s.includes(p) ? s.filter((x) => x !== p) : [...s, p]));
 
+  const scheduledCount = monthPosts.filter((p) => p.status === 'scheduled').length;
+  const publishedCount = monthPosts.filter((p) => p.status === 'published').length;
+  const specialCount = SPECIAL_DAYS.filter((s) => s.month === cursor.getMonth() + 1).length;
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className={cn('flex flex-wrap items-center gap-2', refined && 'gap-3 rounded-2xl border bg-card p-4 shadow-sm md:p-5')}>
         <div className="mr-auto">
           {embedded ? <h2 className="text-lg font-semibold">Content calendar</h2> : <h1 className="text-2xl font-semibold">Content calendar</h1>}
-          <p className="text-xs text-muted-foreground">
-            {monthPosts.filter((p) => p.status === 'scheduled').length} scheduled · {monthPosts.filter((p) => p.status === 'published').length} published in {format(cursor, 'MMMM')} · times in IST
-          </p>
+          {refined ? (
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+              <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1"><span className="h-2 w-2 rounded-full ring-2 ring-inset ring-foreground/50" aria-hidden /> {scheduledCount} scheduled</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1"><span className="h-2 w-2 rounded-full bg-foreground/50" aria-hidden /> {publishedCount} published</span>
+              {specialCount > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1"><Sparkles className="h-3 w-3 text-polar-amber" aria-hidden /> {specialCount} special {specialCount === 1 ? 'day' : 'days'}</span>
+              )}
+              <span className="text-muted-foreground">in {format(cursor, 'MMMM')} · times in IST</span>
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              {scheduledCount} scheduled · {publishedCount} published in {format(cursor, 'MMMM')} · times in IST
+            </p>
+          )}
         </div>
         <ToggleGroup type="single" value={view} onValueChange={(v) => v && setView(v as View)} aria-label="Calendar view">
           <ToggleGroupItem value="month" className="hidden md:inline-flex">
@@ -267,29 +320,42 @@ export function CalendarView({ embedded = false }: { embedded?: boolean }) {
         )
       ) : (
         <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-          <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
-            <div className="grid min-w-[760px] grid-cols-7 border-b bg-muted/40 text-center text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
-                <div key={d} className="py-2">
+          <div className={cn('overflow-x-auto border bg-card shadow-sm', refined ? 'rounded-2xl' : 'rounded-xl')}>
+            <div
+              className={cn(
+                'grid min-w-[760px] grid-cols-7 border-b text-center',
+                refined ? 'bg-card text-xs font-medium text-muted-foreground' : 'bg-muted/40 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground',
+              )}
+            >
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d, i) => (
+                <div key={d} className={cn(refined ? 'py-3' : 'py-2', refined && i >= 5 && 'text-muted-foreground/70')}>
                   {d}
                 </div>
               ))}
             </div>
-            <div className="grid min-w-[760px] grid-cols-7">
+            <div className={cn('grid min-w-[760px] grid-cols-7', refined && 'gap-px bg-border/70')}>
               {days.map((day) => {
                 const list = onDay(day);
                 const limit = view === 'week' ? 12 : MAX_CHIPS;
                 const special = SPECIAL_DAYS.find((s) => s.month === day.getMonth() + 1 && s.day === day.getDate())?.name;
                 return (
-                  <DayCell key={day.toISOString()} day={day} muted={view === 'month' && !isSameMonth(day, cursor)} special={special} canDraft={canDraft} more={Math.max(0, list.length - limit)} onMore={() => setDayOpen(day)}>
+                  <DayCell key={day.toISOString()} day={day} muted={view === 'month' && !isSameMonth(day, cursor)} special={special} canDraft={canDraft} more={Math.max(0, list.length - limit)} onMore={() => setDayOpen(day)} refined={refined}>
                     {list.slice(0, limit).map((p) => (
-                      <Chip key={p.id} p={p} draggable={canMove && p.status === 'scheduled'} onOpen={setOpen} />
+                      <Chip key={p.id} p={p} draggable={canMove && p.status === 'scheduled'} onOpen={setOpen} refined={refined} />
                     ))}
                   </DayCell>
                 );
               })}
             </div>
           </div>
+          {refined && (
+            <div className="flex flex-wrap items-center gap-4 px-1 text-xs text-muted-foreground" aria-hidden>
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full ring-2 ring-inset ring-foreground/50" /> Scheduled</span>
+              <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-foreground/50" /> Published</span>
+              <span className="flex items-center gap-1.5"><Sparkles className="h-3 w-3 text-polar-amber" /> Special day, click to draft a post</span>
+              <span className="ml-auto">Dot colour shows the first platform</span>
+            </div>
+          )}
         </DndContext>
       )}
 
@@ -308,7 +374,7 @@ export function CalendarView({ embedded = false }: { embedded?: boolean }) {
               {canDraft && (
                 <Button asChild>
                   <Link href={`/studio?post=${open.id}`}>
-                    <PenSquare /> Open in Studio
+                    <PenSquare /> {refined ? 'Open draft' : 'Open in Studio'}
                   </Link>
                 </Button>
               )}

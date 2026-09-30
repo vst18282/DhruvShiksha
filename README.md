@@ -1,9 +1,10 @@
-# PolarVerse · NCPOR (Demo)
+# DhruvShiksha · NCPOR (Demo)
 
 **Integrated Polar Science Outreach, Knowledge Repository and Media Dissemination Portal**
 Problem statement 26063 · Ministry of Earth Sciences · National Centre for Polar and Ocean Research (NCPOR), Goa · Theme: Smart Education
 
-PolarVerse is a **frontend-only** Next.js application. There is no backend, database or API key: authentication, data, search and "AI" all run in the browser on fictional demo data.
+DhruvShiksha is a **frontend-only** Next.js application. There is no backend, database or API key: authentication, data, search and "AI" all run in the browser on fictional demo data.
+
 
 > **Honesty note:** every person, number, finding, DOI and photo in this app is fictional demo content. DOIs use the `10.5555` test prefix. Social platform logos (X, Instagram, Facebook, YouTube, WhatsApp, Threads) come from the CC0 [`simple-icons`](https://simpleicons.org) package and LinkedIn's mark from its public brand assets; they are trademarks of their owners and are used only to identify each platform. Social handles, likes, dislikes and reports are demo numbers.
 
@@ -13,7 +14,7 @@ PolarVerse is a **frontend-only** Next.js application. There is no backend, data
 
 ```bash
 npm i
-npm run dev        # http://localhost:3000
+npm run dev        # http://localhostests :3000
 ```
 
 | Script | What it does |

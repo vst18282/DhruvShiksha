@@ -1,10 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Bot, Mic, MicOff, Send, Trash2, X } from 'lucide-react';
 import { AnswerCard } from './answer-card';
-import { ChatMessageSkeleton } from '@/components/skeletons';
 import { Button } from '@/components/ui/button';
 import { Tooltip } from '@/components/ui/misc';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/misc';
@@ -13,6 +12,7 @@ import { usePageContextStore } from '@/store/page-context';
 import { useUiStore } from '@/store/ui';
 import { useHydrated } from '@/store/hydration';
 import { answerQuestion, POPULAR_TOPICS } from '@/lib/chat/answer';
+import { CHROMELESS_ROUTES } from '@/lib/nav';
 import type { ChatMessage } from '@/lib/chat/types';
 import { cn } from '@/lib/utils';
 
@@ -60,6 +60,46 @@ function Bubbles({ onPick }: { onPick: (q: string) => void }) {
   );
 }
 
+/** Lines of an answer, revealed in order. A matched element is animated as one line (its children are not). */
+const LINE_SELECTOR = 'p, li, [aria-label], .border-t';
+const LINE_STEP_MS = 55;
+
+/**
+ * Reveals the answer card line by line (fast, ~55 ms apart) the first time it appears.
+ * Older messages and reduced-motion users see the card at once.
+ */
+function RevealLines({ active, onDone, children }: { active: boolean; onDone: () => void; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const root = ref.current;
+    if (!active || !root) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      onDone();
+      return;
+    }
+    const all = Array.from(root.querySelectorAll<HTMLElement>(LINE_SELECTOR));
+    const lines = all.filter((el) => !all.some((o) => o !== el && o.contains(el)));
+    lines.forEach((el, i) => {
+      el.style.opacity = '0';
+      el.animate(
+        [
+          { opacity: 0, transform: 'translateY(4px)' },
+          { opacity: 1, transform: 'none' },
+        ],
+        { duration: 220, delay: i * LINE_STEP_MS, easing: 'ease-out', fill: 'forwards' },
+      );
+    });
+    const t = window.setTimeout(() => {
+      lines.forEach((el) => (el.style.opacity = ''));
+      onDone();
+    }, lines.length * LINE_STEP_MS + 260);
+    return () => window.clearTimeout(t);
+    // Run once per fresh answer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+  return <div ref={ref}>{children}</div>;
+}
+
 export function ChatbotLauncher() {
   const hydrated = useHydrated();
   const pathname = usePathname();
@@ -69,6 +109,8 @@ export function ChatbotLauncher() {
   const [scope, setScope] = useState<'all' | 'page'>('all');
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
+  /** Id of the answer that just arrived: only that one plays the line-by-line reveal. */
+  const [fresh, setFresh] = useState<string | null>(null);
   const [listening, setListening] = useState(false);
   const [speechOk, setSpeechOk] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -113,9 +155,10 @@ export function ChatbotLauncher() {
       setThinking(true);
       const id = uid();
       try {
-        // Simulated latency so the typing indicator is visible.
-        await new Promise((r) => setTimeout(r, 600 + Math.random() * 700));
+        // A one-second "thinking" pause with the typing indicator, then the answer reveals line by line.
+        await new Promise((r) => setTimeout(r, 1000));
         const answer = answerQuestion(text, scope, scope === 'page' ? page : null);
+        setFresh(id);
         add({ id, role: 'assistant', text: answer.summary, answer, at: new Date().toISOString() });
       } catch {
         add({ id, role: 'assistant', text: 'Something went wrong while searching the archive. Please try again.', error: true, at: new Date().toISOString() });
@@ -146,6 +189,8 @@ export function ChatbotLauncher() {
   };
 
   if (!hydrated) return null;
+  // No assistant on the landing page or the auth screens.
+  if (CHROMELESS_ROUTES.includes(pathname)) return null;
   const inDash = /^\/(dashboard|studio|upload)/.test(pathname);
   const lastUser = [...messages].reverse().find((m) => m.role === 'user');
 
@@ -179,7 +224,7 @@ export function ChatbotLauncher() {
             <Bot className="h-5 w-5 text-polar-teal" aria-hidden />
             <div className="flex-1">
               <h2 className="text-sm font-semibold">Ask the Archive</h2>
-              <p className="text-[11px] text-white/70">Answers only from PolarVerse content · demo</p>
+              <p className="text-[11px] text-white/70">Answers only from DhruvShiksha content · demo</p>
             </div>
             <Button size="icon" variant="ghost" className="h-8 w-8 text-white hover:bg-white/10" onClick={clear} aria-label="Clear chat" disabled={!messages.length}>
               <Trash2 />
@@ -217,16 +262,27 @@ export function ChatbotLauncher() {
                         )}
                       </div>
                     ) : (
-                      <AnswerCard msg={m} onFollowUp={ask} onFeedback={(f) => update(m.id, { feedback: m.feedback === f ? undefined : f })} />
+                      <RevealLines active={fresh === m.id} onDone={() => setFresh((f) => (f === m.id ? null : f))}>
+                        <AnswerCard msg={m} onFollowUp={ask} onFeedback={(f) => update(m.id, { feedback: m.feedback === f ? undefined : f })} />
+                      </RevealLines>
                     )}
                   </div>
                 </div>
               ),
             )}
             {thinking && (
-              <div role="status" aria-label="Searching the archive">
-                <ChatMessageSkeleton />
-                <p className="ml-9 mt-1 text-xs text-muted-foreground">Searching the archive…</p>
+              <div role="status" aria-label="Thinking" className="flex items-center gap-2">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary text-primary" aria-hidden>
+                  <Bot className="h-4 w-4" />
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-lg rounded-bl-sm border bg-card px-3 py-2.5">
+                  <span className="flex items-end gap-1" aria-hidden>
+                    {[0, 1, 2].map((i) => (
+                      <span key={i} className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/70 motion-reduce:animate-none" style={{ animationDelay: `${i * 0.15}s`, animationDuration: '0.9s' }} />
+                    ))}
+                  </span>
+                  <span className="text-xs text-muted-foreground">Thinking…</span>
+                </span>
               </div>
             )}
             <div ref={endRef} />

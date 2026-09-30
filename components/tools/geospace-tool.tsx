@@ -150,6 +150,7 @@ export function GeospaceTool() {
   return (
     <ToolLayout
       title="Geospace Observatory"
+      hero={{ lead: 'Geospace', script: 'observatory', image: 'aurora-arc' }}
       intro="A simulated space-weather dashboard: solar wind, the Kp index, storm levels, X-ray flares and the aurora ovals over both poles."
       demoNote="All values are SIMULATED demo data generated in your browser every few seconds — not a real space-weather feed."
       howTo={[

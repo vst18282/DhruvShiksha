@@ -12,6 +12,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ClipboardCheck,
+  Database,
   Download,
   FileClock,
   FilePen,
@@ -75,6 +76,7 @@ const ICONS: Record<NavIcon, React.ComponentType<{ className?: string }>> = {
   system: Settings2,
   publishing: LineChart,
   updates: Newspaper,
+  database: Database,
 };
 
 function useIsActive() {

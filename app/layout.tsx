@@ -14,15 +14,15 @@ const deva = Noto_Sans_Devanagari({ subsets: ['devanagari'], weight: ['400', '50
 const script = Dancing_Script({ subsets: ['latin'], weight: ['400', '600', '700'], variable: '--font-script', display: 'swap' });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://polarverse.demo'),
-  title: { default: 'PolarVerse · NCPOR (Demo)', template: '%s · PolarVerse (Demo)' },
+  metadataBase: new URL('https://dhruvshiksha.demo'),
+  title: { default: 'DhruvShiksha · NCPOR (Demo)', template: '%s · DhruvShiksha (Demo)' },
   description:
     'Integrated Polar Science Outreach, Knowledge Repository and Media Dissemination Portal — a frontend demo for NCPOR, Ministry of Earth Sciences. All data is fictional.',
   openGraph: {
-    title: 'PolarVerse · NCPOR (Demo)',
+    title: 'DhruvShiksha · NCPOR (Demo)',
     description: 'Explore India’s Antarctic, Arctic, Himalayan and ocean science — reports, datasets, media and learning.',
     type: 'website',
-    siteName: 'PolarVerse',
+    siteName: 'DhruvShiksha',
   },
   robots: { index: false, follow: false },
 };

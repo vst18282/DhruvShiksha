@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { CheckCircle2, Link2Off, Lock, Plug, Plus, ShieldCheck, Trash2 } from 'lucide-react';
 import type { PlatformId, SocialAccount } from '@/types';
-import { PlatformIcon, PlatformTile } from './platform-icon';
+import { PlatformIcon, PlatformTile, brandHex } from './platform-icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -57,11 +57,11 @@ function ConnectDialog({ open, onOpenChange, onDone }: { open: boolean; onOpenCh
         {step === 1 && (
           <>
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2"><PlatformIcon id={platform} className="h-6 w-6" /> Authorise PolarVerse (demo)</DialogTitle>
+              <DialogTitle className="flex items-center gap-2"><PlatformIcon id={platform} className="h-6 w-6" /> Authorise DhruvShiksha (demo)</DialogTitle>
               <DialogDescription>This is a simulated OAuth consent screen — no data leaves your browser.</DialogDescription>
             </DialogHeader>
             <div className="rounded-lg border bg-muted/40 p-4 text-sm">
-              <p className="font-medium">PolarVerse Studio would like to:</p>
+              <p className="font-medium">DhruvShiksha Studio would like to:</p>
               <ul className="mt-2 space-y-1 text-muted-foreground">
                 <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success" aria-hidden /> Publish posts on your behalf</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success" aria-hidden /> Read basic profile and follower count</li>
@@ -117,30 +117,61 @@ export function AccountsView() {
         <Button onClick={() => setOpen(true)}><Plus /> Connect account</Button>
       </div>
       {isPending ? <TableSkeleton rows={6} /> : (
-        <div className="space-y-5">
-          {PLATFORMS.filter((p) => data?.some((a) => a.platform === p)).map((p) => (
-            <section key={p} aria-labelledby={`acc-${p}`}>
-              <h2 id={`acc-${p}`} className="mb-2 flex items-center gap-2 text-sm font-semibold"><PlatformIcon id={p} /> {PLATFORM_META[p].label}</h2>
-              <ul className="grid gap-3 md:grid-cols-2">
-                {data!.filter((a) => a.platform === p).map((a) => (
-                  <li key={a.id} className="flex items-center gap-3 rounded-lg border bg-card p-4">
-                    <PlatformTile id={a.platform} />
+        <>
+          <dl className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Accounts', value: String(data?.length ?? 0) },
+              { label: 'Connected', value: `${data?.filter((a) => a.connected).length ?? 0} / ${data?.length ?? 0}` },
+              { label: 'Total followers', value: formatNumber((data ?? []).reduce((s, a) => s + a.followers, 0)) },
+            ].map((s) => (
+              <div key={s.label} className="rounded-xl border bg-card px-4 py-3 shadow-sm">
+                <dt className="text-xs text-muted-foreground">{s.label}</dt>
+                <dd className="text-xl font-semibold tabular-nums">{s.value}</dd>
+              </div>
+            ))}
+          </dl>
+          {/* One even grid of platform cards: each card lists that platform's accounts. */}
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {PLATFORMS.filter((p) => data?.some((a) => a.platform === p)).map((p) => {
+              const list = data!.filter((a) => a.platform === p);
+              const followers = list.reduce((s, a) => s + a.followers, 0);
+              return (
+                <section key={p} aria-labelledby={`acc-${p}`} className="flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
+                  <div className="h-1" style={{ background: brandHex(p) === '#000000' ? '#334155' : brandHex(p) }} aria-hidden />
+                  <div className="flex items-center gap-3 border-b px-4 py-3">
+                    <PlatformTile id={p} />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{a.displayName}</p>
-                      <p className="text-xs text-muted-foreground">{a.handle} · {formatNumber(a.followers)} followers · {a.purpose}</p>
-                      <p className="text-[11px] text-muted-foreground">Connected {a.connectedAt}</p>
+                      <h2 id={`acc-${p}`} className="font-semibold">{PLATFORM_META[p].label}</h2>
+                      <p className="text-xs text-muted-foreground">{list.length} account{list.length === 1 ? '' : 's'} · {formatNumber(followers)} followers</p>
                     </div>
-                    <Badge variant={a.connected ? 'success' : 'muted'}>{a.connected ? 'Connected' : 'Revoked'}</Badge>
-                    <div className="flex flex-col gap-1">
-                      <Button size="sm" variant="outline" onClick={() => toggle(a)}>{a.connected ? <><Link2Off /> Revoke</> : <><Plug /> Reconnect</>}</Button>
-                      <Button size="sm" variant="ghost" onClick={() => remove(a)} aria-label={`Remove ${a.handle}`}><Trash2 /> Remove</Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
+                  </div>
+                  <ul className="flex-1 divide-y">
+                    {list.map((a) => (
+                      <li key={a.id} className="px-4 py-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium">{a.displayName}</p>
+                            <p className="truncate text-xs text-muted-foreground">{a.handle}</p>
+                          </div>
+                          <Badge variant={a.connected ? 'success' : 'muted'} className="shrink-0">{a.connected ? 'Connected' : 'Revoked'}</Badge>
+                        </div>
+                        <p className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                          <span><span className="font-semibold text-foreground">{formatNumber(a.followers)}</span> followers</span>
+                          <span>{a.purpose}</span>
+                          <span>Since {a.connectedAt}</span>
+                        </p>
+                        <div className="mt-2 flex gap-1.5">
+                          <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => toggle(a)}>{a.connected ? <><Link2Off /> Revoke</> : <><Plug /> Reconnect</>}</Button>
+                          <Button size="sm" variant="ghost" className="h-7 text-xs text-muted-foreground hover:text-destructive" onClick={() => remove(a)} aria-label={`Remove ${a.handle}`}><Trash2 /> Remove</Button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              );
+            })}
+          </div>
+        </>
       )}
       <ConnectDialog open={open} onOpenChange={setOpen} onDone={refresh} />
     </div>

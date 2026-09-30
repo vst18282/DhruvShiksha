@@ -29,7 +29,7 @@ function PostDetailBody({ post, accounts }: { post: SocialPost; accounts: Social
           <dt className="mb-1 text-xs text-muted-foreground">Posted on</dt>
           <dd className="space-y-1.5">
             {post.platforms.length === 0 ? (
-              <span>PolarVerse website ({post.outputType})</span>
+              <span>DhruvShiksha website ({post.outputType})</span>
             ) : (
               post.platforms.map((pl) => {
                 const accs = accounts.filter((a) => post.accountIds.includes(a.id) && a.platform === pl);

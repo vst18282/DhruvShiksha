@@ -24,7 +24,7 @@ export function downloadItem(item: ArchiveItem, file?: Attachment): boolean {
   }
   const name = file ? file.name : `${item.slug}.txt`;
   const body = [
-    `PolarVerse demo download — ${file ? file.name : item.title}`,
+    `DhruvShiksha demo download — ${file ? file.name : item.title}`,
     '',
     'This is a placeholder file generated in your browser. In production this would be the original',
     `${file?.kind?.toUpperCase() ?? 'item'} stored in the archive.`,

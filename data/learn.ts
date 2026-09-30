@@ -74,7 +74,7 @@ export const QUIZZES: Quiz[] = [
 ];
 
 export const FAQS: Faq[] = [
-  { id: 'f1', category: 'general', q: 'Is this the official NCPOR website?', a: 'No. PolarVerse is a demonstration concept with fictional data. It is not affiliated with any official website.' },
+  { id: 'f1', category: 'general', q: 'Is this the official NCPOR website?', a: 'No. DhruvShiksha is a demonstration concept with fictional data. It is not affiliated with any official website.' },
   { id: 'f2', category: 'data', q: 'How can I download a dataset?', a: 'Open datasets can be downloaded from the dataset page. Registered datasets need a free account; restricted datasets require an access request.' },
   { id: 'f3', category: 'data', q: 'What does “embargoed” mean?', a: 'The data will be made available after a set date, usually to allow the original team to publish first.' },
   { id: 'f4', category: 'education', q: 'Can teachers use the worksheets?', a: 'Yes, learning resources are CC-BY licensed (demo) for classroom use.' },

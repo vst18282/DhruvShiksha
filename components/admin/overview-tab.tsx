@@ -33,8 +33,8 @@ import type { AccessLevel, ArchiveItem, AuditEntry, ContentType, Region, Role, S
 import { AreaTrend } from '@/components/charts/lazy';
 import { Donut, RadialGauge, SegmentBar, Sparkline, type Segment } from '@/components/charts/mini';
 import { PlatformIcon } from '@/components/studio/platform-icon';
+import { WelcomePanel } from '@/components/dashboard/welcome-panel';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/misc';
 import { Skeleton, StatSkeleton } from '@/components/skeletons';
 import { useApi } from '@/hooks/use-queries';
@@ -53,18 +53,20 @@ import { cn, formatCompact, formatNumber, initials } from '@/lib/utils';
 
 /* --------------------------------- helpers -------------------------------- */
 
-const PALETTE = ['#3B82C4', '#2DD4BF', '#8B5CF6', '#F59E0B', '#0EA5E9', '#ef4444', '#22c55e', '#EC4899'];
-const ROLE_COLORS: Record<Role, string> = { admin: '#0EA5E9', scientist: '#3B82C4', content_manager: '#8B5CF6', researcher: '#2DD4BF', student: '#F59E0B' };
-const STATUS_COLORS: Record<Status, string> = { draft: '#94A3B8', in_review: '#F59E0B', changes_requested: '#FB923C', approved: '#2DD4BF', scheduled: '#3B82C4', published: '#22c55e', rejected: '#ef4444', archived: '#64748B' };
+/** Restrained blue-slate scale (no bright accents) used across the overview charts. */
+const PALETTE = ['#1E3A5F', '#2F5D8C', '#4A7FB0', '#7AA3C8', '#A9C4DD', '#64748B', '#94A3B8', '#CBD5E1'];
+const ROLE_COLORS: Record<Role, string> = { admin: '#1E3A5F', scientist: '#2F5D8C', content_manager: '#4A7FB0', researcher: '#64748B', student: '#7AA3C8' };
+const STATUS_COLORS: Record<Status, string> = { draft: '#CBD5E1', in_review: '#B7913A', changes_requested: '#B06F45', approved: '#7AA3C8', scheduled: '#4A7FB0', published: '#2F5D8C', rejected: '#A44B4B', archived: '#64748B' };
 const ROLES: Role[] = ['admin', 'scientist', 'content_manager', 'researcher', 'student'];
 
 type MetricKey = 'visitors' | 'downloads' | 'reach' | 'engagement' | 'uploads';
 const METRICS: Record<MetricKey, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
-  visitors: { label: 'Visitors', color: '#3B82C4', icon: Eye },
-  downloads: { label: 'Downloads', color: '#2DD4BF', icon: Download },
-  reach: { label: 'Social reach', color: '#8B5CF6', icon: TrendingUp },
-  engagement: { label: 'Engagement', color: '#EC4899', icon: Share2 },
-  uploads: { label: 'Uploads', color: '#F59E0B', icon: UploadCloud },
+  // One brand blue for every metric: the selected pill and the chart carry the meaning, not the hue.
+  visitors: { label: 'Visitors', color: '#2F5D8C', icon: Eye },
+  downloads: { label: 'Downloads', color: '#2F5D8C', icon: Download },
+  reach: { label: 'Social reach', color: '#2F5D8C', icon: TrendingUp },
+  engagement: { label: 'Engagement', color: '#2F5D8C', icon: Share2 },
+  uploads: { label: 'Uploads', color: '#2F5D8C', icon: UploadCloud },
 };
 
 const SIZE_WEIGHT: Record<ContentType, number> = { video: 8, dataset: 5, photo: 1.2, report: 0.9, publication: 0.5, expedition: 0.4, event: 0.6, blog: 0.2 };
@@ -80,7 +82,7 @@ function storageEstimate(items: ArchiveItem[], usedGb: number, quotaGb: number, 
 }
 
 const pct = (a: number, b: number) => (b ? Math.round(((a - b) / b) * 100) : 0);
-const scoreColor = (s: number) => (s >= 75 ? '#22c55e' : s >= 55 ? '#F59E0B' : '#ef4444');
+const scoreColor = (s: number) => (s >= 75 ? '#2F5D8C' : s >= 55 ? '#B7913A' : '#A44B4B');
 
 function ago(iso: string, now: number) {
   const s = Math.max(0, (now - new Date(iso).getTime()) / 1000);
@@ -94,7 +96,7 @@ function ago(iso: string, now: number) {
 /** Shared card chrome for overview panels. */
 function Panel({ title, icon, action, children, className, id }: { title: string; icon: React.ReactNode; action?: React.ReactNode; children: React.ReactNode; className?: string; id?: string }) {
   return (
-    <section id={id} aria-label={title} className={cn('flex flex-col rounded-xl border bg-card p-5 shadow-sm', className)}>
+    <section id={id} aria-label={title} className={cn('flex min-w-0 flex-col rounded-xl border bg-card p-5 shadow-sm', className)}>
       <header className="mb-4 flex items-center gap-2">
         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary" aria-hidden>
           {icon}
@@ -277,64 +279,51 @@ export function OverviewTab() {
 
   return (
     <div className="space-y-6">
-      {/* ------------------------------- Hero ------------------------------- */}
-      <section aria-label="Summary" className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-polar-navy via-[#12305a] to-[#2a1f5c] p-6 text-white shadow-lg md:p-8">
-        <div className="pointer-events-none absolute -left-16 -top-20 h-64 w-64 rounded-full bg-polar-teal/30 blur-3xl" aria-hidden />
-        <div className="pointer-events-none absolute -bottom-24 right-10 h-72 w-72 rounded-full bg-polar-violet/40 blur-3xl" aria-hidden />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="space-y-3">
-            <p className="text-sm text-white/70">{now ? new Date(now).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '\u00a0'}</p>
-            <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">
-              {greeting}, {me?.name.split(' ')[0] ?? 'Admin'}
-            </h2>
-            <p className="max-w-xl text-sm text-white/80">
+      {/* ------------------------------ Greeting ------------------------------ */}
+      <WelcomePanel
+        className="mb-0"
+        eyebrow="Admin console"
+        name={me?.name.split(' ').slice(0, 2).join(' ') ?? 'Admin'}
+        subtitle={
+          <>
+            <p>{now ? new Date(now).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '\u00a0'}</p>
+            <p className="mt-1">
               {highCount ? `${highCount} thing${highCount > 1 ? 's' : ''} need${highCount === 1 ? 's' : ''} your attention today.` : 'Everything important is in order.'} The portal holds {formatCompact(items.length)} items and {users.data?.length ?? '…'} accounts.
             </p>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className={cn('inline-flex items-center gap-1.5 rounded-full px-2.5 py-1', settings.allowDownloads ? 'bg-white/10' : 'bg-destructive/80')}>
-                <Download className="h-3.5 w-3.5" aria-hidden /> Downloads {settings.allowDownloads ? 'on' : 'off'}
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1">
-                <ShieldCheck className="h-3.5 w-3.5" aria-hidden /> Science review {scienceReviewEnforced(workflow, table) ? 'required' : 'optional'}
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1">
-                <Flag className="h-3.5 w-3.5" aria-hidden /> Reactions {settings.enableReactions ? 'on' : 'off'} · reports {settings.enableReporting ? 'on' : 'off'}
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-2 pt-1">
-              <Button size="sm" className="bg-white text-polar-navy hover:bg-white/90" asChild>
-                <Link href="/dashboard/admin?tab=users">
-                  <Users /> Manage users
-                </Link>
-              </Button>
-              <Button size="sm" variant="outline" className="border-white/30 bg-white/5 text-white hover:bg-white/15 hover:text-white" asChild>
-                <Link href="/dashboard/admin?tab=system">
-                  <Settings2 /> System settings
-                </Link>
-              </Button>
-              <Button size="sm" variant="outline" className="border-white/30 bg-white/5 text-white hover:bg-white/15 hover:text-white" asChild>
-                <Link href="/dashboard/admin?tab=audit">
-                  <FileClock /> Audit log
-                </Link>
-              </Button>
-            </div>
-          </div>
-          <Link href="/dashboard/admin?tab=health" className="flex items-center gap-4 self-start rounded-xl bg-white/10 p-4 backdrop-blur transition-colors hover:bg-white/15 lg:self-auto">
-            <RadialGauge value={health.avg} color={scoreColor(health.avg)} trackClassName="stroke-white/15" size={104} label={`Average content health score ${health.avg} out of 100`}>
+          </>
+        }
+        links={[
+          { href: '/dashboard/admin?tab=users', label: 'Manage users', icon: Users },
+          { href: '/dashboard/admin?tab=system', label: 'System settings', icon: Settings2 },
+          { href: '/dashboard/admin?tab=audit', label: 'Audit log', icon: FileClock },
+          { href: '/dashboard/admin?tab=publishing', label: 'Publishing & Insights', icon: TrendingUp },
+        ]}
+        aside={
+          <Link href="/dashboard/admin?tab=health" className="flex items-center gap-5 rounded-xl border bg-background/80 p-5 transition-colors hover:border-primary/40">
+            <RadialGauge value={health.avg} color={scoreColor(health.avg)} size={104} label={`Average content health score ${health.avg} out of 100`}>
               <span className="text-2xl font-bold tabular-nums">{health.avg}</span>
-              <span className="text-[10px] uppercase tracking-wide text-white/70">health</span>
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">health</span>
             </RadialGauge>
-            <div className="space-y-1 text-sm">
-              <p className="font-medium">Content health</p>
-              <p className="text-white/70">{health.count} published items &amp; posts</p>
-              <p className="text-white/70">
-                {health.low} low score · {health.openReports} open reports
-              </p>
+            <div className="min-w-0 space-y-2 text-sm">
+              <div>
+                <p className="font-medium">Content health</p>
+                <p className="text-xs text-muted-foreground">{health.count} published items &amp; posts · {health.low} low score · {health.openReports} open reports</p>
+              </div>
+              <ul className="flex flex-wrap gap-1.5 text-[11px]">
+                <li className={cn('inline-flex items-center gap-1 rounded-full border px-2 py-0.5', !settings.allowDownloads && 'border-destructive/40 text-destructive')}>
+                  <Download className="h-3 w-3" aria-hidden /> Downloads {settings.allowDownloads ? 'on' : 'off'}
+                </li>
+                <li className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5">
+                  <ShieldCheck className="h-3 w-3" aria-hidden /> Science review {scienceReviewEnforced(workflow, table) ? 'required' : 'optional'}
+                </li>
+                <li className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5">
+                  <Flag className="h-3 w-3" aria-hidden /> Reactions {settings.enableReactions ? 'on' : 'off'} · reports {settings.enableReporting ? 'on' : 'off'}
+                </li>
+              </ul>
             </div>
           </Link>
-        </div>
-      </section>
-
+        }
+      />
       {/* -------------------------------- KPIs -------------------------------- */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
         {loading || !last || !prev ? (
@@ -439,7 +428,7 @@ export function OverviewTab() {
                     <span
                       className={cn(
                         'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
-                        x.level === 'high' ? 'bg-destructive/15 text-destructive' : x.level === 'medium' ? 'bg-polar-amber/20 text-polar-amber' : 'bg-primary/10 text-primary',
+                        x.level === 'high' ? 'bg-destructive/10 text-destructive' : x.level === 'medium' ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300' : 'bg-primary/10 text-primary',
                       )}
                       aria-hidden
                     >
@@ -490,7 +479,7 @@ function ContentMix({ items, dim, setDim, active, setActive }: { items: ArchiveI
     }
     const label = (k: string) =>
       dim === 'type' ? CONTENT_TYPE_LABELS[k as ContentType].plural : dim === 'region' ? REGION_META[k as Region].label : dim === 'access' ? ACCESS_META[k as AccessLevel].label : STATUS_META[k as Status].label;
-    const color = (k: string, i: number) => (dim === 'region' ? REGION_META[k as Region].color : dim === 'status' ? STATUS_COLORS[k as Status] : PALETTE[i % PALETTE.length]);
+    const color = (k: string, i: number) => (dim === 'status' ? STATUS_COLORS[k as Status] : PALETTE[i % PALETTE.length]);
     return Array.from(counts, ([k, v]) => ({ key: k, label: label(k), value: v }))
       .sort((x, y) => y.value - x.value)
       .map((s, i) => ({ ...s, color: color(s.key, i) }));
@@ -697,14 +686,14 @@ function TopContent({ items }: { items: ArchiveItem[] }) {
         {top.map((i, n) => (
           <li key={i.id}>
             <Link href={itemHref(i)} className="group flex items-center gap-3">
-              <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold', n === 0 ? 'bg-polar-amber/25' : 'bg-muted text-muted-foreground')}>{n + 1}</span>
+              <span className={cn('flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold', n === 0 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground')}>{n + 1}</span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-baseline justify-between gap-2">
                   <span className="truncate text-sm font-medium group-hover:text-primary">{i.title}</span>
                   <span className="shrink-0 text-xs font-semibold tabular-nums">{formatCompact(i[by])}</span>
                 </span>
                 <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
-                  <span className="block h-full rounded-full bg-gradient-to-r from-polar-teal to-primary transition-all duration-500 motion-reduce:transition-none" style={{ width: `${(i[by] / max) * 100}%` }} />
+                  <span className="block h-full rounded-full bg-primary/75 transition-all duration-500 motion-reduce:transition-none" style={{ width: `${(i[by] / max) * 100}%` }} />
                 </span>
                 <span className="text-[11px] text-muted-foreground">{CONTENT_TYPE_LABELS[i.type].singular}</span>
               </span>
@@ -725,7 +714,7 @@ function Storage({ items, usedGb, quotaGb, uploadsPerMonth }: { items: ArchiveIt
   return (
     <Panel title="Storage" icon={<HardDrive className="h-4 w-4" />} className="scroll-mt-28" id="storage">
       <div className="flex items-center gap-4">
-        <RadialGauge value={used} color={used > 85 ? '#ef4444' : used > 70 ? '#F59E0B' : '#3B82C4'} size={84} stroke={10} label={`Storage ${used}% used`}>
+        <RadialGauge value={used} color={used > 85 ? '#A44B4B' : used > 70 ? '#B7913A' : '#2F5D8C'} size={84} stroke={10} label={`Storage ${used}% used`}>
           <span className="text-lg font-bold tabular-nums">{used}%</span>
         </RadialGauge>
         <div className="min-w-0 flex-1 space-y-1.5 text-xs">

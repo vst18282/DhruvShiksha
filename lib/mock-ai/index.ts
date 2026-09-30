@@ -55,7 +55,7 @@ function factsOf(ref: SourceRef): Facts | null {
         : itemBodyText(item).split(/(?<=[.!?])\s+/).filter((s) => s.length > 30).slice(0, 3);
   const sentences = `${item.summary} ${itemBodyText(item)}`.split(/(?<=[.!?])\s+/).filter((s) => s.length > 20);
   const place = item.station ? `${STATION_NAMES[item.station]} station` : REGION_META[item.region].label;
-  return { ref, item, title: item.title, summary: item.summary, findings, sentences, place, href: `https://polarverse.demo${itemHref(item)}`, topicKey: topicKeyOf(item.id) };
+  return { ref, item, title: item.title, summary: item.summary, findings, sentences, place, href: `https://dhruvshiksha.demo${itemHref(item)}`, topicKey: topicKeyOf(item.id) };
 }
 
 /* ------------------------------ Word transforms ----------------------------- */
@@ -138,7 +138,7 @@ const HOOKS: Record<Tone, ((f: Facts) => string)[]> = {
   Friendly: [(f) => `Ever wondered what’s happening at ${f.place}?`, (f) => `Here’s something cool from ${f.place}!`, (f) => `Grab a cup of chai — here’s news from ${f.place}.`],
   Inspiring: [(f) => `Science at the edge of the world: ${f.title}.`, (f) => `Every measurement at ${f.place} tells a story about our changing planet.`, () => `Curiosity took our teams to the coldest places on Earth.`],
   Educational: [(f) => `Did you know? Scientists at ${f.place} are studying this right now.`, (f) => `Let’s learn something new from ${f.place}.`, () => `Here’s a quick science lesson from the poles.`],
-  'News/Announcement': [(f) => `Just released: ${f.title}.`, (f) => `Announcement: new results from ${f.place}.`, (f) => `Out now on PolarVerse — ${f.title}.`],
+  'News/Announcement': [(f) => `Just released: ${f.title}.`, (f) => `Announcement: new results from ${f.place}.`, (f) => `Out now on DhruvShiksha — ${f.title}.`],
   Playful: [() => `Ice, data and a little bit of adventure — here’s the scoop!`, (f) => `Plot twist from ${f.place}…`, () => `Breaking (the ice) news!`],
 };
 
@@ -232,7 +232,7 @@ function composeCore(req: GenerateRequest, facts: Facts[], seed: number): Draft 
     stylistic.add(s);
   });
   if (req.options.cta) {
-    const cta = `Read more on PolarVerse: ${f0.href}`;
+    const cta = `Read more on DhruvShiksha: ${f0.href}`;
     out.push(cta);
     stylistic.add(cta);
   }
@@ -333,7 +333,7 @@ function buildArticle(req: GenerateRequest, facts: Facts[], seed: number): Gener
     glossaryTerms,
     imageSuggestions: [`Wide shot of ${f0.place}`, `Close-up of instruments used in “${f0.title.split(':')[0]}”`, 'Infographic of the key numbers (demo)'],
     seo: {
-      metaTitle: `${title} | PolarVerse`.slice(0, 60),
+      metaTitle: `${title} | DhruvShiksha`.slice(0, 60),
       metaDescription: f0.summary.slice(0, 155),
       slug: slugify(title).slice(0, 60),
       keywords: Array.from(new Set(facts.flatMap((f) => f.item.tags))).slice(0, 8),
@@ -367,7 +367,7 @@ function buildNewsletter(req: GenerateRequest, facts: Facts[], seed: number): st
     `Hello polar explorer,`,
     d.sentences.slice(0, 3).join(' '),
     ...facts.slice(0, 3).map((f) => `▸ ${f.title}\n${f.summary}\nRead: ${f.href}`),
-    `Until next time — the PolarVerse team (demo).`,
+    `Until next time — the DhruvShiksha team (demo).`,
   ].join('\n\n');
 }
 

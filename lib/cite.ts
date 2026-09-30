@@ -6,7 +6,7 @@ function doiOf(it: ArchiveItem): string | undefined {
 }
 
 function url(it: ArchiveItem) {
-  return `https://polarverse.demo/${it.type === 'dataset' ? 'data' : it.type === 'publication' ? 'publications' : it.type === 'report' ? 'reports' : it.type === 'blog' ? 'blog' : it.type === 'event' ? 'events' : it.type === 'expedition' ? 'expeditions' : 'gallery'}/${it.slug}`;
+  return `https://dhruvshiksha.demo/${it.type === 'dataset' ? 'data' : it.type === 'publication' ? 'publications' : it.type === 'report' ? 'reports' : it.type === 'blog' ? 'blog' : it.type === 'event' ? 'events' : it.type === 'expedition' ? 'expeditions' : 'gallery'}/${it.slug}`;
 }
 
 function apaAuthors(a: string[]) {

@@ -218,7 +218,7 @@ export function PublishPanel({ sources }: { sources: SourceRef[] }) {
                   const reach = Math.round(5000 + r() * 30000);
                   const p = await save('published', 'publish', { publishedAt: new Date().toISOString(), metrics: { reach, impressions: reach * 2, engagement: Math.round(reach * 0.05), clicks: Math.round(reach * 0.01) } });
                   if (!p) return;
-                  setResults(social ? selectedAccounts.map((a) => ({ account: a.displayName, platform: a.platform, url: `https://${a.platform}.example/${a.handle.replace(/[@\s]/g, '')}/status/${Date.now().toString(36)}` })) : [{ account: 'PolarVerse website', platform: 'x', url: '/blog' }]);
+                  setResults(social ? selectedAccounts.map((a) => ({ account: a.displayName, platform: a.platform, url: `https://${a.platform}.example/${a.handle.replace(/[@\s]/g, '')}/status/${Date.now().toString(36)}` })) : [{ account: 'DhruvShiksha website', platform: 'x', url: '/blog' }]);
                 }}
               >
                 <Rocket /> Publish now

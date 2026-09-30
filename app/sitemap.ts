@@ -3,7 +3,7 @@ import { SEED_ITEMS } from '@/data';
 import { STATIONS } from '@/data/stations';
 import { CONTENT_TYPE_LABELS } from '@/lib/constants';
 
-const BASE = 'https://polarverse.demo';
+const BASE = 'https://dhruvshiksha.demo';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes = ['', '/explore', '/expeditions', '/reports', '/data', '/publications', '/blog', '/gallery', '/stations', '/events', '/learn', '/learn/glossary', '/learn/quizzes', '/learn/resources', '/learn/ask-a-scientist', '/learn/careers', '/map', '/tools', '/tools/polar-map/2d', '/tools/polar-map/3d', '/tools/ice-core', '/tools/sounds-of-the-pole', '/tools/satellite', '/tools/climate-sandbox', '/tools/geospace', '/press', '/about'];

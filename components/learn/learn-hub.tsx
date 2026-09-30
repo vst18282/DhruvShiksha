@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { BookHeart, BookOpen, Briefcase, CheckCircle2, Circle, Download, MessageCircleQuestion, Trophy } from 'lucide-react';
 import { SectionHeader } from '@/components/common';
 import { PolarImage } from '@/components/common/polar-image';
+import { PageHero } from '@/components/common/page-hero';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/misc';
@@ -36,19 +37,20 @@ export function LearnHub() {
   const { completedSteps, completeStep } = useUserStore();
   return (
     <div>
-      <section className="relative overflow-hidden bg-polar-navy text-white">
-        <PolarImage variant="penguin" seed="learn-hero" alt="" decorative className="absolute inset-0 h-full w-full opacity-50" />
-        <div className="absolute inset-0 bg-gradient-to-r from-polar-navy via-polar-navy/80 to-transparent" />
-        <div className="container relative py-16">
-          <Badge variant="aurora" className="mb-3 text-white">Smart Education</Badge>
-          <h1 className="max-w-2xl text-4xl font-bold">Learn the poles</h1>
-          <p className="mt-3 max-w-xl text-white/80">Learning paths for every class, a glossary, quizzes with badges, a virtual expedition diary and real (demo) scientists to answer your questions.</p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Button variant="aurora" asChild><Link href="/learn/quizzes">Take a quiz</Link></Button>
-            <Button variant="outline" className="border-white/30 bg-white/10 text-white hover:bg-white/20" asChild><Link href="/learn/diary/isea-39">Start the diary</Link></Button>
+      {/* Full-width title band in the same style as the Gallery and Expeditions pages. */}
+      <PageHero
+        eyebrow="Smart Education"
+        title="Learn the"
+        script="poles"
+        description="Learning paths for every class, a glossary, quizzes with badges, a virtual expedition diary and real (demo) scientists to answer your questions."
+        image="emperor-colony"
+        action={
+          <div className="flex flex-wrap gap-3">
+            <Button className="bg-white text-polar-navy hover:bg-white/90" asChild><Link href="/learn/quizzes">Take a quiz</Link></Button>
+            <Button variant="outline" className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white" asChild><Link href="/learn/diary/isea-39">Start the diary</Link></Button>
           </div>
-        </div>
-      </section>
+        }
+      />
 
       <div className="container space-y-14 py-12">
         <section aria-labelledby="paths">

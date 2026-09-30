@@ -83,7 +83,6 @@ export const NOTIFICATIONS: Notification[] = [
   { id: 'n9', kind: 'approval', title: 'Upload approved', body: 'Your dataset “Bharati sea-ice buoys 2025” is now published.', at: '2026-09-20T10:00:00Z', read: true, roles: ['scientist'], link: '/dashboard/scientist' },
   { id: 'n10', kind: 'system', title: 'Saved search alert', body: '3 new items match “sea ice bharati”.', at: '2026-09-23T06:00:00Z', read: false, roles: ['researcher'], link: '/explore?q=sea+ice+bharati' },
   { id: 'n11', kind: 'social', title: 'Special day coming up', body: 'Antarctica Day is on 1 December — start drafting posts.', at: '2026-09-22T06:00:00Z', read: false, roles: ['content_manager'], link: '/studio' },
-  { id: 'n12', kind: 'comment', title: 'Moderation needed', body: '2 new ask-a-scientist questions are waiting.', at: '2026-09-25T09:00:00Z', read: false, roles: ['content_manager'], link: '/dashboard/content?tab=moderation' },
 ];
 
 /* ============================ SOCIAL ACCOUNTS =========================== */
@@ -142,7 +141,7 @@ export const POSTS: SocialPost[] = POST_SEEDS.map(([title, status, platforms, ac
   return {
     id: `post-${i + 1}`,
     title,
-    text: `${title} — new from the PolarVerse archive. Read the full story and explore the data on the portal. (Demo post)`,
+    text: `${title} — new from the DhruvShiksha archive. Read the full story and explore the data on the portal. (Demo post)`,
     outputType: 'social',
     platforms,
     accountIds,
