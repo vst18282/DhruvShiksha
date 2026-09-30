@@ -126,19 +126,19 @@ const tileShape = (m: MediaItem) => TILE_SHAPES[hashString(`${m.id}-${m.type}`) 
 
 /**
  * Showcase: a compact sliding frame with the slide written large in script beside it, so the two
- * together fill the row. Advances every 3 s and pauses on hover, focus and reduced motion.
+ * together fill the row. Advances every 3 s (off for reduced motion and low-bandwidth mode).
  */
 function Showcase({ items, onOpen }: { items: MediaItem[]; onOpen: (id: string) => void }) {
   const reduce = useReducedMotion();
   const low = useUiStore((s) => s.lowBandwidth);
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
   const n = items.length;
+  // Advance 3 s after every slide change, so a manual jump also restarts the countdown.
   useEffect(() => {
-    if (reduce || low || paused || n < 2) return;
-    const t = setInterval(() => setIndex((i) => (i + 1) % n), 3000);
-    return () => clearInterval(t);
-  }, [reduce, low, paused, n]);
+    if (reduce || low || n < 2) return;
+    const t = setTimeout(() => setIndex((i) => (i + 1) % n), 3000);
+    return () => clearTimeout(t);
+  }, [index, reduce, low, n]);
   if (!n) return null;
   const go = (i: number) => setIndex(((i % n) + n) % n);
   const current = items[index];
@@ -147,10 +147,6 @@ function Showcase({ items, onOpen }: { items: MediaItem[]; onOpen: (id: string) 
       aria-roledescription="carousel"
       aria-label="Featured media"
       className="group relative mb-10 grid items-center gap-6 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1fr)] lg:gap-10"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
-      onBlurCapture={() => setPaused(false)}
     >
       <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-polar-navy shadow-xl">
         <div className="flex transition-transform duration-700 ease-out motion-reduce:transition-none" style={{ transform: `translateX(-${index * 100}%)` }}>

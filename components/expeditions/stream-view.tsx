@@ -5,6 +5,7 @@ import { motion, useReducedMotion, useScroll, useSpring } from 'framer-motion';
 import { Search, Waves } from 'lucide-react';
 import type { Expedition, Region } from '@/types';
 import { ExpeditionCard } from './expedition-card';
+import { ExpeditionsBackdrop } from './expeditions-backdrop';
 import { MiniMap } from '@/components/maps/mini-map';
 import { EmptyState } from '@/components/common';
 import { HeroChip, PageHero } from '@/components/common/page-hero';
@@ -212,6 +213,7 @@ export function StreamView() {
 
   return (
     <div className="relative">
+      <ExpeditionsBackdrop />
       <style>{`@keyframes river-flow { to { stroke-dashoffset: -48; } }`}</style>
       {!plain && <motion.div className="fixed left-0 right-0 top-0 z-50 h-1 origin-left bg-gradient-to-r from-polar-ice via-polar-teal to-polar-violet" style={{ scaleX: progress }} aria-hidden />}
       <PageHero

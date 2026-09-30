@@ -33,11 +33,12 @@ export function ExploreHero({ q, filters, onSearch, onFilters }: { q: string; fi
 
       <div className="container relative pb-28 pt-10 md:pt-14">
         <div className="max-w-3xl">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.32em] text-[#8fd6ff]">Explore the archive</p>
-          <h1 id="explore-title" className="mt-2 text-balance text-4xl font-bold tracking-tight md:text-5xl">
-            Find the science behind the poles.
+
+          <p className="text-[12px] font-semibold uppercase tracking-[0.32em] text-[#38bdf8] [text-shadow:0_1px_2px_rgba(0,0,0,0.6),0_2px_10px_rgba(3,15,40,0.65)]">Explore the archive</p>
+          <h1 id="explore-title" className="mt-2 text-balance text-4xl font-bold tracking-tight [text-shadow:0_2px_4px_rgba(0,0,0,0.35),0_8px_24px_rgba(3,15,40,0.6)] md:text-5xl">
+            Find the science <span className="text-[#38bdf8]">behind the poles.</span>
           </h1>
-          <p className="mt-4 max-w-2xl text-[15px] leading-7 text-white/85 md:text-base">
+          <p className="mt-4 max-w-2xl text-[15px] leading-7 text-white/85 [text-shadow:0_1px_2px_rgba(0,0,0,0.45),0_4px_14px_rgba(3,15,40,0.55)] md:text-base">
             Search reports, expeditions, datasets, publications, media and events using natural language. Discover research, learn stories and explore the polar regions with smart search that understands everyday words.
           </p>
         </div>

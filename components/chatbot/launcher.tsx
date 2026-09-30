@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Bot, Mic, MicOff, Send, Trash2, X } from 'lucide-react';
 import { AnswerCard } from './answer-card';
@@ -58,46 +58,6 @@ function Bubbles({ onPick }: { onPick: (q: string) => void }) {
       </ul>
     </div>
   );
-}
-
-/** Lines of an answer, revealed in order. A matched element is animated as one line (its children are not). */
-const LINE_SELECTOR = 'p, li, [aria-label], .border-t';
-const LINE_STEP_MS = 55;
-
-/**
- * Reveals the answer card line by line (fast, ~55 ms apart) the first time it appears.
- * Older messages and reduced-motion users see the card at once.
- */
-function RevealLines({ active, onDone, children }: { active: boolean; onDone: () => void; children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => {
-    const root = ref.current;
-    if (!active || !root) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      onDone();
-      return;
-    }
-    const all = Array.from(root.querySelectorAll<HTMLElement>(LINE_SELECTOR));
-    const lines = all.filter((el) => !all.some((o) => o !== el && o.contains(el)));
-    lines.forEach((el, i) => {
-      el.style.opacity = '0';
-      el.animate(
-        [
-          { opacity: 0, transform: 'translateY(4px)' },
-          { opacity: 1, transform: 'none' },
-        ],
-        { duration: 220, delay: i * LINE_STEP_MS, easing: 'ease-out', fill: 'forwards' },
-      );
-    });
-    const t = window.setTimeout(() => {
-      lines.forEach((el) => (el.style.opacity = ''));
-      onDone();
-    }, lines.length * LINE_STEP_MS + 260);
-    return () => window.clearTimeout(t);
-    // Run once per fresh answer.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active]);
-  return <div ref={ref}>{children}</div>;
 }
 
 export function ChatbotLauncher() {
@@ -262,9 +222,14 @@ export function ChatbotLauncher() {
                         )}
                       </div>
                     ) : (
-                      <RevealLines active={fresh === m.id} onDone={() => setFresh((f) => (f === m.id ? null : f))}>
-                        <AnswerCard msg={m} onFollowUp={ask} onFeedback={(f) => update(m.id, { feedback: m.feedback === f ? undefined : f })} />
-                      </RevealLines>
+                      <AnswerCard
+                        msg={m}
+                        onFollowUp={ask}
+                        onFeedback={(f) => update(m.id, { feedback: m.feedback === f ? undefined : f })}
+                        reveal={fresh === m.id}
+                        onRevealStep={() => endRef.current?.scrollIntoView({ block: 'end' })}
+                        onRevealDone={() => setFresh((f) => (f === m.id ? null : f))}
+                      />
                     )}
                   </div>
                 </div>

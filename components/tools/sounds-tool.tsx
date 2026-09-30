@@ -103,6 +103,13 @@ export function SoundsTool() {
 
   const play = async (id: SoundId, v = vol[id]) => {
     const e = ensure();
+    // One sound at a time: starting a card stops whatever else is playing.
+    e.playing().filter((p) => p !== id).forEach((p) => {
+      e.stop(p);
+      const timer = stopTimers.current.get(p);
+      if (timer) clearTimeout(timer);
+      stopTimers.current.delete(p);
+    });
     await e.play(id, v);
     setPlaying(e.playing());
     setFocus(id);
@@ -134,7 +141,7 @@ export function SoundsTool() {
       intro="Listen to — and mix — the soundscapes of Antarctica and the Arctic. Every sound here is synthesised in your browser for the demo."
       demoNote="All sounds are synthesised for demo with the Web Audio API — they imitate, but are not, real field recordings."
       howTo={[
-        'Press play on any card. Sounds can be layered — each card’s slider is its mixer channel.',
+        'Press play on any card. One sound plays at a time — starting another stops the first.',
         'Try a preset scene, or build your own polar scene.',
         'Switch the visualiser between waveform and spectrogram.',
         'Set a sleep timer to fade everything out.',
